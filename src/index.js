@@ -1,7 +1,8 @@
 import EventEmitter from 'eventemitter3'
+import fetch from 'isomorphic-fetch'
+import defaults from 'defaults'
 import parse from 'iab-vast-parser'
 import {Wrapper} from 'iab-vast-model'
-import fetch from 'isomorphic-fetch'
 
 const DEFAULT_OPTIONS = {
   maxDepth: 10
@@ -17,7 +18,7 @@ export default class Loader extends EventEmitter {
       this._depth = parent._depth + 1
     } else {
       this._root = this
-      this._options = Object.assign({}, DEFAULT_OPTIONS, options)
+      this._options = defaults(options, DEFAULT_OPTIONS)
       this._depth = 1
     }
   }
