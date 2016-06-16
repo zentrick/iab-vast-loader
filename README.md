@@ -39,7 +39,7 @@ loader.load()
 ```
 
 Returns a `Promise` for an array of `VAST` instances. The `VAST` class is
-provided by [iab-vast-model](https://github.com/zentrick/iab-vast-model).
+provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
 
 ## Events
 
