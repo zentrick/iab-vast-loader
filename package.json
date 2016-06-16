@@ -1,0 +1,72 @@
+{
+  "name": "iab-vast-loader",
+  "version": "0.0.0",
+  "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
+  "main": "index.js",
+  "jsnext:main": "src/index.js",
+  "author": "Zentrick nv (https://www.zentrick.com/)",
+  "contributors": [
+    "Tim De Pauw <tim.depauw@zentrick.com>"
+  ],
+  "engines": {
+    "node": ">=0.12.0"
+  },
+  "license": "MIT",
+  "files": [
+    "src/",
+    "lib/",
+    "index.js"
+  ],
+  "scripts": {
+    "clean": "gulp clean",
+    "build": "gulp build",
+    "prepublish": "npm run clean && npm run build",
+    "test": "gulp test"
+  },
+  "repository": "zentrick/iab-vast-loader",
+  "bugs": "https://github.com/zentrick/iab-vast-loader/issues",
+  "dependencies": {
+    "eventemitter3": "^1.2.0",
+    "iab-vast-model": "^0.1.0",
+    "iab-vast-parser": "^0.1.0",
+    "isomorphic-fetch": "^2.2.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^6.0.4",
+    "babel-plugin-async-to-promises": "^1.0.4",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-register": "^6.7.2",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.2.0",
+    "del": "^2.2.0",
+    "express": "^4.13.4",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-coveralls": "^0.1.4",
+    "gulp-if": "^2.0.0",
+    "gulp-istanbul": "^0.10.3",
+    "gulp-load-plugins": "^1.2.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-notify": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-standard": "^6.0.5",
+    "isparta": "^4.0.0",
+    "run-sequence": "^1.1.5",
+    "sinon": "^1.17.3"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "globals": [
+      "describe",
+      "it",
+      "before",
+      "after",
+      "beforeEach",
+      "afterEach",
+      "expect",
+      "fetch",
+      "XMLHttpRequest"
+    ]
+  }
+}
