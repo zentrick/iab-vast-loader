@@ -58,7 +58,7 @@ loader
   .on('willParse', ({uri, body}) => {
     console.info('Parsing', uri)
   })
-  .on('willParse', ({uri, body, vast}) => {
+  .on('didParse', ({uri, body, vast}) => {
     console.info('Parsed', uri)
   })
   .load()
