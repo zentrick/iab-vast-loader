@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
-import assign from 'lodash.assign'
 import parse from 'iab-vast-parser'
 import {Wrapper} from 'iab-vast-model'
 
@@ -18,7 +17,7 @@ export default class Loader extends EventEmitter {
       this._depth = parent._depth + 1
     } else {
       this._root = this
-      this._options = assign({}, options, DEFAULT_OPTIONS)
+      this._options = Object.assign({}, options, DEFAULT_OPTIONS)
       this._depth = 1
     }
   }
