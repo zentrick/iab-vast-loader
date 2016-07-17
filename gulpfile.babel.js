@@ -65,6 +65,6 @@ gulp.task('coveralls', () => {
 
 gulp.task('test', (cb) => seq('lint', 'coverage', 'coveralls', cb))
 
-gulp.task('watch', () => gulp.watch('{src,test}/**/*', ['build']))
+gulp.task('watch', () => gulp.watch('src/**/*', ['build']))
 
 gulp.task('default', ['build'], () => gulp.start('watch'))
