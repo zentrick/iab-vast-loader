@@ -2,7 +2,9 @@ import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
 import parse from 'iab-vast-parser'
 import {Wrapper} from 'iab-vast-model'
+import atob from './atob'
 
+const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
   maxDepth: 10
 }
@@ -61,8 +63,10 @@ export default class Loader extends EventEmitter {
   }
 
   async _fetch (uri) {
-    const resp = await fetch(uri)
-    return await resp.text()
+    const match = RE_DATA_URI.exec(uri)
+    return (match == null) ? (await fetch(uri)).text()
+      : (match[1] != null) ? atob(match[2])
+      : match[2]
   }
 
   _emit (...args) {
