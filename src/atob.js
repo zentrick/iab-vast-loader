@@ -13,6 +13,7 @@ export default (string) => {
     const a = ((b1 & 0x3F) << 2) | ((b2 >> 4) & 0x3)
     const b = ((b2 & 0xF) << 4) | ((b3 >> 2) & 0xF)
     const c = ((b3 & 0x3) << 6) | (b4 & 0x3F)
+    /* istanbul ignore next */
     result += String.fromCharCode(a) +
       (b ? String.fromCharCode(b) : '') +
       (c ? String.fromCharCode(c) : '')

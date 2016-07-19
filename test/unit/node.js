@@ -1,5 +1,5 @@
 import express from 'express'
-import sinon from 'sinon'
+import fsp from 'fs-promise'
 import path from 'path'
 import Loader from '../../src/'
 
@@ -56,6 +56,26 @@ describe('Loader', () => {
       const chain = await loader.load()
       expect(chain).to.be.an.instanceof(Array)
       expect(chain.length).to.equal(2)
+    })
+
+    it('loads the InLine as Base64', async () => {
+      const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
+      const base64 = (await fsp.readFile(file)).toString('base64')
+      const dataUri = 'data:text/xml;base64,' + base64
+      const loader = new Loader(dataUri)
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(1)
+    })
+
+    it('loads the InLine as XML', async () => {
+      const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
+      const xml = (await fsp.readFile(file, 'utf8')).replace(/\r?\n/g, '')
+      const dataUri = 'data:text/xml,' + xml
+      const loader = new Loader(dataUri)
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(1)
     })
 
     it('throws when maxDepth is reached', async () => {
