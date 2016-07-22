@@ -47,7 +47,7 @@ export default class Loader extends EventEmitter {
       throw new Error('No ads found')
     }
     const ad = vast.ads.get(0)
-    return (ad instanceof Wrapper)
+    return (ad instanceof Wrapper || ad.$type === 'Wrapper')
       ? this._loadWrapped(ad.vastAdTagURI, vast)
       : [vast]
   }
