@@ -80,7 +80,7 @@ describe('Loader', () => {
 
     it('throws when maxDepth is reached', async () => {
       expect((async () => {
-        const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml', {maxDepth: 1})
+        const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml', { maxDepth: 1 })
         await loader.load()
       })()).to.be.rejectedWith(Error)
     })

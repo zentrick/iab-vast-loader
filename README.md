@@ -49,16 +49,16 @@ as follows:
 
 ```js
 loader
-  .on('willFetch', ({uri}) => {
+  .on('willFetch', ({ uri }) => {
     console.info('Fetching', uri)
   })
-  .on('didFetch', ({uri, body}) => {
+  .on('didFetch', ({ uri, body }) => {
     console.info('Fetched', body.length, 'bytes from', uri)
   })
-  .on('willParse', ({uri, body}) => {
+  .on('willParse', ({ uri, body }) => {
     console.info('Parsing', uri)
   })
-  .on('didParse', ({uri, body, vast}) => {
+  .on('didParse', ({ uri, body, vast }) => {
     console.info('Parsed', uri)
   })
   .load()

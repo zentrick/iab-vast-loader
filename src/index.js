@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
 import parse from 'iab-vast-parser'
-import {Wrapper} from 'iab-vast-model'
+import { Wrapper } from 'iab-vast-model'
 import atob from './atob'
 
 const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
@@ -29,7 +29,7 @@ export default class Loader extends EventEmitter {
     try {
       result = await this._load()
     } catch (error) {
-      this._emit('error', {error})
+      this._emit('error', { error })
       throw error
     }
     return result
@@ -37,12 +37,12 @@ export default class Loader extends EventEmitter {
 
   async _load () {
     const uri = this._uri
-    this._emit('willFetch', {uri})
+    this._emit('willFetch', { uri })
     const body = await this._fetch(uri)
-    this._emit('didFetch', {uri, body})
-    this._emit('willParse', {uri, body})
+    this._emit('didFetch', { uri, body })
+    this._emit('willParse', { uri, body })
     const vast = parse(body)
-    this._emit('didParse', {uri, body, vast})
+    this._emit('didParse', { uri, body, vast })
     if (vast.ads.length === 0) {
       throw new Error('No ads found')
     }
@@ -53,7 +53,7 @@ export default class Loader extends EventEmitter {
   }
 
   async _loadWrapped (vastAdTagURI, vast) {
-    const {maxDepth} = this._options
+    const { maxDepth } = this._options
     if (maxDepth > 0 && this._depth + 1 >= maxDepth) {
       throw new Error(`Maximum VAST chain length of ${maxDepth} reached`)
     }
