@@ -19,7 +19,7 @@ export default class Loader extends EventEmitter {
       this._depth = parent._depth + 1
     } else {
       this._root = this
-      this._options = Object.assign({}, options, DEFAULT_OPTIONS)
+      this._options = Object.assign({}, DEFAULT_OPTIONS, options)
       this._depth = 1
     }
   }
