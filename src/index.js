@@ -15,7 +15,7 @@ export default class Loader extends EventEmitter {
     this._uri = uri
     if (parent != null) {
       this._root = parent._root
-      this._options = this._root.options
+      this._options = this._root._options
       this._depth = parent._depth + 1
     } else {
       this._root = this
