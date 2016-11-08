@@ -6,7 +6,8 @@ import atob from './atob'
 
 const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
-  maxDepth: 10
+  maxDepth: 10,
+  credentials: 'omit'
 }
 
 export default class Loader extends EventEmitter {
@@ -38,7 +39,7 @@ export default class Loader extends EventEmitter {
   async _load () {
     const uri = this._uri
     this._emit('willFetch', { uri })
-    const body = await this._fetch(uri)
+    const body = await this._acquire(uri)
     this._emit('didFetch', { uri, body })
     this._emit('willParse', { uri, body })
     const vast = parse(body)
@@ -62,11 +63,30 @@ export default class Loader extends EventEmitter {
     return [vast, ...children]
   }
 
-  async _fetch (uri) {
+  async _acquire (uri) {
+    const that = this // Workaround for async-to-promises binding issue
     const match = RE_DATA_URI.exec(uri)
-    return (match == null) ? (await fetch(uri)).text()
+    return (match == null) ? await that._fetch(uri)
       : (match[1] != null) ? atob(match[2])
       : match[2]
+  }
+
+  async _fetch (uri) {
+    const options = this._buildFetchOptions(uri)
+    const response = await fetch(uri, options)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`)
+    }
+    return await response.text()
+  }
+
+  _buildFetchOptions (uri) {
+    const { credentials } = this._options
+    const type = typeof credentials
+    const cred = (type === 'string') ? credentials
+      : (type === 'function') ? credentials(uri)
+      : 'omit'
+    return { credentials: cred }
   }
 
   _emit (...args) {

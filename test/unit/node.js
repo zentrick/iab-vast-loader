@@ -78,22 +78,15 @@ describe('Loader', () => {
       expect(chain.length).to.equal(1)
     })
 
-    it('throws when maxDepth is reached', async () => {
-      expect((async () => {
-        const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml', { maxDepth: 1 })
-        await loader.load()
-      })()).to.be.rejectedWith(Error)
-    })
-
     it('throws on tags without ads', () => {
-      expect((async () => {
+      return expect((async () => {
         const loader = createLoader('no-ads.xml')
         await loader.load()
       })()).to.be.rejectedWith(Error, 'No ads found')
     })
 
     it('throws on HTTP errors', () => {
-      expect((async () => {
+      return expect((async () => {
         const loader = createLoader('four-oh-four')
         await loader.load()
       })()).to.be.rejectedWith(Error, /404/)
@@ -130,6 +123,56 @@ describe('Loader', () => {
         await loader.load()
       } catch (err) {}
       expect(spy.calledOnce).to.be.true
+    })
+  })
+
+  describe('maxDepth option', () => {
+    it('throws when maxDepth is reached', async () => {
+      return expect((async () => {
+        const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml', {
+          maxDepth: 1
+        })
+        await loader.load()
+      })()).to.be.rejectedWith(Error)
+    })
+  })
+
+  describe('credentials option', () => {
+    // TODO Inject fetch so we can make these more robust
+
+    it('is "omit" by default', async () => {
+      const loader = createLoader('tremor-video/vast_inline_linear.xml')
+      const fetchOptions = loader._buildFetchOptions(
+        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
+      expect(fetchOptions).to.eql({ credentials: 'omit' })
+    })
+
+    it('overrides with a string value', async () => {
+      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+        credentials: 'include'
+      })
+      const fetchOptions = loader._buildFetchOptions(
+        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
+      expect(fetchOptions).to.eql({ credentials: 'include' })
+    })
+
+    it('overrides with a function value', async () => {
+      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+        credentials: (uri) => 'same-origin'
+      })
+      const fetchOptions = loader._buildFetchOptions(
+        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
+      expect(fetchOptions).to.eql({ credentials: 'same-origin' })
+    })
+
+    it('calls the function with the tag URI', async () => {
+      const credentials = sinon.spy((uri) => 'same-origin')
+      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+        credentials
+      })
+      const uri = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
+      loader._buildFetchOptions(uri)
+      expect(credentials).to.have.been.calledWith(uri)
     })
   })
 })

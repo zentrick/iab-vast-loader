@@ -30,9 +30,7 @@ loader.load()
 new VASTLoader(tagUrl[, options])
 ```
 
-Currently, one `option` is supported: the `maxDepth` key allows you to specify
-the maximum number of VAST documents to load within one chain. The default
-value is 10.
+Creates a VAST loader.
 
 ```js
 loader.load()
@@ -40,6 +38,38 @@ loader.load()
 
 Returns a `Promise` for an array of `VAST` instances. The `VAST` class is
 provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
+
+## Options
+
+### `maxDepth`
+
+The maximum number of VAST documents to load within one chain. The default is
+10.
+
+### `credentials`
+
+Controls [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
+behavior. You can either pass a string or a function.
+
+If you pass a string, it will be used as the value for the `credentials` option
+to every request.
+[Valid values](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)
+are `'omit'` (the default), `'same-origin'` and `'include'`.
+
+To control the behavior on a per-request basis, pass a function receiving the
+request URL and returning one of the accepted values. For example:
+
+```js
+const loader = new VASTLoader(wrapperUrl, {
+  credentials (uri) {
+    if (uri.indexOf('.doubleclick.net/') >= 0) {
+      return 'include'
+    } else {
+      return 'omit'
+    }
+  }
+})
+```
 
 ## Events
 
