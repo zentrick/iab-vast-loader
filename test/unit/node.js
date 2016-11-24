@@ -8,24 +8,29 @@ describe('Loader', () => {
   const proxyFrom = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
   const proxyTo = 'tremor-video/vast_inline_linear.xml'
 
-  let oldFetch
+  let fetchUriImpl
   let server
   let baseUrl
 
   const createLoader = (file, options) => new Loader(baseUrl + file, options)
 
-  const proxifyFetch = () => {
-    oldFetch = Loader.prototype._fetch
-    Loader.prototype._fetch = async function (uri) {
-      if (uri === proxyFrom) {
-        uri = baseUrl + proxyTo
+  const proxifyFetchUri = () => {
+    fetchUriImpl = Loader.prototype._fetchUri
+    Loader.prototype._fetchUri = async function () {
+      if (this._uri !== proxyFrom) {
+        return await fetchUriImpl.call(this)
       }
-      return oldFetch.call(this, uri)
+      this._uri = baseUrl + proxyTo
+      try {
+        return await fetchUriImpl.call(this)
+      } finally {
+        this._uri = proxyFrom
+      }
     }
   }
 
-  const unproxifyFetch = () => {
-    Loader.prototype._fetch = oldFetch
+  const unproxifyFetchUri = () => {
+    Loader.prototype._fetchUri = fetchUriImpl
   }
 
   before((cb) => {
@@ -33,13 +38,13 @@ describe('Loader', () => {
     app.use(express.static(fixturesPath))
     server = app.listen(() => {
       baseUrl = 'http://localhost:' + server.address().port + '/'
-      proxifyFetch()
+      proxifyFetchUri()
       cb()
     })
   })
 
   after((cb) => {
-    unproxifyFetch()
+    unproxifyFetchUri()
     server.close(cb)
   })
 
@@ -138,50 +143,42 @@ describe('Loader', () => {
   })
 
   describe('credentials option', () => {
-    // TODO Inject fetch so we can make these more robust
+    // TODO Use something nicer than inspecting private _fetchOptions
 
     it('is "omit" by default', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml')
-      const fetchOptions = loader._buildFetchOptions(
-        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
-      expect(fetchOptions).to.eql({ credentials: 'omit' })
+      expect(loader._fetchOptions).to.eql({ credentials: 'omit' })
     })
 
     it('overrides with a string value', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: 'include'
       })
-      const fetchOptions = loader._buildFetchOptions(
-        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
-      expect(fetchOptions).to.eql({ credentials: 'include' })
+      expect(loader._fetchOptions).to.eql({ credentials: 'include' })
     })
 
     it('overrides with a function value', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: (uri) => 'same-origin'
       })
-      const fetchOptions = loader._buildFetchOptions(
-        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
-      expect(fetchOptions).to.eql({ credentials: 'same-origin' })
+      expect(loader._fetchOptions).to.eql({ credentials: 'same-origin' })
     })
 
     it('calls the function with the tag URI', () => {
       const credentials = sinon.spy((uri) => 'same-origin')
-      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+      const file = 'tremor-video/vast_inline_linear.xml'
+      const uri = baseUrl + file
+      createLoader(file, {
         credentials
       })
-      const uri = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
-      loader._buildFetchOptions(uri)
       expect(credentials).to.have.been.calledWith(uri)
     })
 
     it('throws if neither a string nor a function provided', () => {
-      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
-        credentials: true
-      })
-      const uri = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
       expect(() => {
-        loader._buildFetchOptions(uri)
+        createLoader('tremor-video/vast_inline_linear.xml', {
+          credentials: true
+        })
       }).to.throw(Error, 'Invalid credentials option: true')
     })
   })

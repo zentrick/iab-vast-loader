@@ -23,6 +23,7 @@ export default class Loader extends EventEmitter {
       this._options = Object.assign({}, DEFAULT_OPTIONS, options)
       this._depth = 1
     }
+    this._fetchOptions = this._buildFetchOptions()
   }
 
   load () {
@@ -38,7 +39,10 @@ export default class Loader extends EventEmitter {
     return Promise.resolve()
       .then(() => {
         this._emit('willFetch', { uri })
-        return this._acquire(uri)
+        const match = RE_DATA_URI.exec(uri)
+        return (match == null) ? this._fetchUri()
+          : (match[1] != null) ? atob(match[2])
+          : match[2]
       })
       .then((body) => {
         this._emit('didFetch', { uri, body })
@@ -70,22 +74,8 @@ export default class Loader extends EventEmitter {
       })
   }
 
-  _acquire (uri) {
-    return Promise.resolve()
-      .then(() => {
-        const match = RE_DATA_URI.exec(uri)
-        return (match == null) ? this._fetch(uri)
-          : (match[1] != null) ? atob(match[2])
-          : match[2]
-      })
-  }
-
-  _fetch (uri) {
-    return Promise.resolve()
-      .then(() => {
-        const options = this._buildFetchOptions(uri)
-        return fetch(uri, options)
-      })
+  _fetchUri () {
+    return fetch(this._uri, this._fetchOptions)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status} ${response.statusText}`)
@@ -94,11 +84,11 @@ export default class Loader extends EventEmitter {
       })
   }
 
-  _buildFetchOptions (uri) {
+  _buildFetchOptions () {
     const { credentials } = this._options
     switch (typeof credentials) {
       case 'string': return { credentials }
-      case 'function': return { credentials: credentials(uri) }
+      case 'function': return { credentials: credentials(this._uri) }
       default: throw new Error(`Invalid credentials option: ${credentials}`)
     }
   }
