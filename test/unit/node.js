@@ -140,14 +140,14 @@ describe('Loader', () => {
   describe('credentials option', () => {
     // TODO Inject fetch so we can make these more robust
 
-    it('is "omit" by default', async () => {
+    it('is "omit" by default', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml')
       const fetchOptions = loader._buildFetchOptions(
         'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
       expect(fetchOptions).to.eql({ credentials: 'omit' })
     })
 
-    it('overrides with a string value', async () => {
+    it('overrides with a string value', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: 'include'
       })
@@ -156,7 +156,7 @@ describe('Loader', () => {
       expect(fetchOptions).to.eql({ credentials: 'include' })
     })
 
-    it('overrides with a function value', async () => {
+    it('overrides with a function value', () => {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: (uri) => 'same-origin'
       })
@@ -165,7 +165,7 @@ describe('Loader', () => {
       expect(fetchOptions).to.eql({ credentials: 'same-origin' })
     })
 
-    it('calls the function with the tag URI', async () => {
+    it('calls the function with the tag URI', () => {
       const credentials = sinon.spy((uri) => 'same-origin')
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials
@@ -173,6 +173,16 @@ describe('Loader', () => {
       const uri = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
       loader._buildFetchOptions(uri)
       expect(credentials).to.have.been.calledWith(uri)
+    })
+
+    it('throws if neither a string nor a function provided', () => {
+      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+        credentials: true
+      })
+      const uri = 'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
+      expect(() => {
+        loader._buildFetchOptions(uri)
+      }).to.throw(Error, 'Invalid credentials option: true')
     })
   })
 })
