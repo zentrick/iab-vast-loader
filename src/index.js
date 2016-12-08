@@ -42,7 +42,7 @@ export default class Loader extends EventEmitter {
         const match = RE_DATA_URI.exec(uri)
         return (match == null) ? this._fetchUri()
           : (match[1] != null) ? atob(match[2])
-          : match[2]
+          : decodeURIComponent(match[2])
       })
       .then((body) => {
         this._emit('didFetch', { uri, body })
