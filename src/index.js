@@ -8,7 +8,8 @@ import atob from './atob'
 const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
   maxDepth: 10,
-  credentials: 'omit'
+  credentials: 'omit',
+  timeout: 10000
 }
 
 export { VASTLoaderError }
@@ -80,14 +81,38 @@ export default class Loader extends EventEmitter {
   }
 
   _fetchUri () {
-    return fetch(this._uri, this._fetchOptions)
+    const fetching = fetch(this._uri, this._fetchOptions)
+    const timingOut = this._createTimeouter(fetching)
+    return Promise.race([fetching, timingOut])
       .then((response) => {
+        timingOut.cancel()
         if (!response.ok) {
           // TODO Convert response to HTTPError
           throw new VASTLoaderError(900, response)
         }
         return response.text()
       })
+      .catch((err) => {
+        timingOut.cancel()
+        throw err
+      })
+  }
+
+  _createTimeouter (fetching) {
+    const ms = this._options.timeout
+    let timeout = null
+    const timingOut = new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        reject(new VASTLoaderError(301))
+      }, ms)
+    })
+    timingOut.cancel = () => {
+      if (timeout != null) {
+        clearTimeout(timeout)
+        timeout = null
+      }
+    }
+    return timingOut
   }
 
   _buildFetchOptions () {

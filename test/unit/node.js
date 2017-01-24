@@ -3,6 +3,15 @@ import fsp from 'fs-promise'
 import path from 'path'
 import { default as VASTLoader, VASTLoaderError } from '../../src/'
 
+const expectLoaderError = (error, code, message, cause) => {
+  expect(error).to.be.an.instanceof(VASTLoaderError)
+  expect(error.code).to.equal(code)
+  expect(error.message).to.equal(message)
+  if (cause != null) {
+    expect(error.cause).to.include(cause)
+  }
+}
+
 describe('VASTLoaderError', function () {
   describe('#code', function () {
     it('gets set from the constructor', function () {
@@ -44,6 +53,7 @@ describe('VASTLoader', function () {
   let fetchUriImpl
   let server
   let baseUrl
+  let responseDelay
 
   const createLoader = (file, options) => new VASTLoader(baseUrl + file, options)
 
@@ -70,6 +80,9 @@ describe('VASTLoader', function () {
 
   before(function (cb) {
     const app = express()
+    app.use((req, res, next) => {
+      setTimeout(() => next(), responseDelay)
+    })
     app.use(express.static(fixturesPath))
     server = app.listen(function () {
       baseUrl = 'http://localhost:' + server.address().port + '/'
@@ -81,6 +94,10 @@ describe('VASTLoader', function () {
   after(function (cb) {
     unproxifyFetchUri()
     server.close(cb)
+  })
+
+  beforeEach(function () {
+    responseDelay = 0
   })
 
   describe('#load()', function () {
@@ -133,9 +150,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expect(error).to.be.an.instanceof(VASTLoaderError)
-      expect(error.code).to.equal(303)
-      expect(error.message).to.equal('No Ads VAST response after one or more Wrappers.')
+      expectLoaderError(error, 303, 'No Ads VAST response after one or more Wrappers.')
     })
 
     it('throws on HTTP errors', async function () {
@@ -146,10 +161,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expect(error).to.be.an.instanceof(VASTLoaderError)
-      expect(error.code).to.equal(900)
-      expect(error.message).to.equal('Undefined error.')
-      expect(error.cause).to.include({status: 404, statusText: 'Not Found'})
+      expectLoaderError(error, 900, 'Undefined error.', {status: 404, statusText: 'Not Found'})
     })
   })
 
@@ -188,12 +200,32 @@ describe('VASTLoader', function () {
 
   describe('maxDepth option', function () {
     it('throws when maxDepth is reached', async function () {
-      return expect((async function () {
+      let error
+      try {
         const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml', {
           maxDepth: 1
         })
         await loader.load()
-      })()).to.be.rejectedWith(Error)
+      } catch (err) {
+        error = err
+      }
+      expectLoaderError(error, 302, 'Wrapper limit reached.')
+    })
+  })
+
+  describe('timeout option', function () {
+    it('throws when timeout is reached', async function () {
+      responseDelay = 100
+      let error
+      try {
+        const loader = createLoader('no-ads.xml', {
+          timeout: 10
+        })
+        await loader.load()
+      } catch (err) {
+        error = err
+      }
+      expectLoaderError(error, 301, 'Timeout.')
     })
   })
 
