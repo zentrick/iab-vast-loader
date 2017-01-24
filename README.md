@@ -71,6 +71,11 @@ each with their own `VASTLoaderError` class.
 The maximum number of VAST documents to load within one chain. The default is
 10.
 
+### `timeout`
+
+The maximum number of milliseconds to spend per HTTP request. The default is
+10,000.
+
 ### `credentials`
 
 Controls [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
