@@ -42,7 +42,7 @@
     "core-js": "^2.4.0",
     "del": "^2.2.0",
     "express": "^4.14.1",
-    "fs-promise": "^1.0.0",
+    "fs-promise": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-coveralls": "^0.1.4",
