@@ -2,13 +2,17 @@ import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
 import parse from 'iab-vast-parser'
 import { Wrapper } from 'iab-vast-model'
+import VASTLoaderError from './error'
 import atob from './atob'
 
 const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
   maxDepth: 10,
-  credentials: 'omit'
+  credentials: 'omit',
+  timeout: 10000
 }
+
+export { VASTLoaderError }
 
 export default class Loader extends EventEmitter {
   constructor (uri, options, parent) {
@@ -49,13 +53,15 @@ export default class Loader extends EventEmitter {
         this._emit('willParse', { uri, body })
         const vast = parse(body)
         this._emit('didParse', { uri, body, vast })
-        if (vast.ads.length === 0) {
-          throw new Error('No ads found')
+        if (vast.ads.length > 0) {
+          const ad = vast.ads.get(0)
+          if (ad instanceof Wrapper || ad.$type === 'Wrapper') {
+            return this._loadWrapped(ad.vastAdTagURI, vast)
+          }
+        } else if (this._depth > 1) {
+          throw new VASTLoaderError(303)
         }
-        const ad = vast.ads.get(0)
-        return (ad instanceof Wrapper || ad.$type === 'Wrapper')
-          ? this._loadWrapped(ad.vastAdTagURI, vast)
-          : [vast]
+        return [vast]
       })
   }
 
@@ -64,7 +70,7 @@ export default class Loader extends EventEmitter {
       .then(() => {
         const { maxDepth } = this._options
         if (maxDepth > 0 && this._depth + 1 >= maxDepth) {
-          throw new Error(`Maximum VAST chain length of ${maxDepth} reached`)
+          throw new VASTLoaderError(302)
         }
         const childLoader = new Loader(vastAdTagURI, null, this)
         return childLoader.load()
@@ -75,13 +81,38 @@ export default class Loader extends EventEmitter {
   }
 
   _fetchUri () {
-    return fetch(this._uri, this._fetchOptions)
+    const fetching = fetch(this._uri, this._fetchOptions)
+    const timingOut = this._createTimeouter(fetching)
+    return Promise.race([fetching, timingOut])
       .then((response) => {
+        timingOut.cancel()
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status} ${response.statusText}`)
+          // TODO Convert response to HTTPError
+          throw new VASTLoaderError(900, response)
         }
         return response.text()
       })
+      .catch((err) => {
+        timingOut.cancel()
+        throw err
+      })
+  }
+
+  _createTimeouter (fetching) {
+    const ms = this._options.timeout
+    let timeout = null
+    const timingOut = new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        reject(new VASTLoaderError(301))
+      }, ms)
+    })
+    timingOut.cancel = () => {
+      if (timeout != null) {
+        clearTimeout(timeout)
+        timeout = null
+      }
+    }
+    return timingOut
   }
 
   _buildFetchOptions () {

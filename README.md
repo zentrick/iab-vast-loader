@@ -39,12 +39,42 @@ loader.load()
 Returns a `Promise` for an array of `VAST` instances. The `VAST` class is
 provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
 
+## Error Handling
+
+In addition to the default export `VASTLoader`, the main module also exports
+the `VASTLoaderError` class, which maps errors to the VAST specification:
+
+```js
+import { default as VASTLoader, VASTLoaderError } from 'iab-vast-loader'
+
+const loader = new VASTLoader(tagUrl)
+
+loader.load()
+  .catch((err) => {
+    if (err instanceof VASTLoaderError) {
+      console.error('VAST error: ' + err.code + ' ' + err.message)
+    } else {
+      console.error('Unknown error: ' + err)
+    }
+  })
+```
+
+As with [iab-vast-model](https://www.npmjs.com/package/iab-vast-model), if
+`instanceof` doesn't work for you, you may want to inspect `error.$type`
+instead. This issue can occur if you load multiple versions of iab-vast-loader,
+each with their own `VASTLoaderError` class.
+
 ## Options
 
 ### `maxDepth`
 
 The maximum number of VAST documents to load within one chain. The default is
 10.
+
+### `timeout`
+
+The maximum number of milliseconds to spend per HTTP request. The default is
+10,000.
 
 ### `credentials`
 
