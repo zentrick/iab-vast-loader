@@ -94,7 +94,11 @@ export default class Loader extends EventEmitter {
       })
       .catch((err) => {
         timingOut.cancel()
-        throw err
+        if (this._depth > 1) {
+          throw new VASTLoaderError(301)
+        } else {
+          throw err
+        }
       })
   }
 

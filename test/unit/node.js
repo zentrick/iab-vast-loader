@@ -47,7 +47,8 @@ describe('VASTLoader', function () {
   const fixturesPath = path.resolve(__dirname, '../fixtures')
   const proxyPaths = {
     'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml': 'tremor-video/vast_inline_linear.xml',
-    'http://example.com/no-ads.xml': 'no-ads.xml'
+    'http://example.com/no-ads.xml': 'no-ads.xml',
+    'http://example.com/invalid-ads.xml': 'invalid-ads.xml'
   }
 
   let fetchUriImpl
@@ -151,6 +152,17 @@ describe('VASTLoader', function () {
         error = err
       }
       expectLoaderError(error, 303, 'No Ads VAST response after one or more Wrappers.')
+    })
+
+    it('throws VAST 301 on invalid InLine inside Wrapper', async function () {
+      let error
+      try {
+        const loader = createLoader('invalid-ads-wrapper.xml')
+        await loader.load()
+      } catch (err) {
+        error = err
+      }
+      expectLoaderError(error, 301, 'Timeout.')
     })
 
     it('throws on HTTP errors', async function () {

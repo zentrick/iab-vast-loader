@@ -1,3 +1,5 @@
+// https://support.google.com/dfp_premium/answer/4442429?hl=en
+
 export default {
   100: 'XML parsing error.',
   101: 'VAST schema validation error.',
