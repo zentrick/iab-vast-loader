@@ -185,7 +185,7 @@ describe('VASTLoader', function () {
         const loader = createLoader('tremor-video/vast_inline_linear.xml')
         loader.on(type, spy)
         await loader.load()
-        expect(spy.called).to.be.true
+        expect(spy.called).to.be.true()
       })
     }
 
@@ -195,7 +195,7 @@ describe('VASTLoader', function () {
         const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml')
         loader.on(type, spy)
         await loader.load()
-        expect(spy.calledTwice).to.be.true
+        expect(spy.calledTwice).to.be.true()
       })
     }
 
@@ -206,7 +206,7 @@ describe('VASTLoader', function () {
       try {
         await loader.load()
       } catch (err) {}
-      expect(spy.calledOnce).to.be.true
+      expect(spy.calledOnce).to.be.true()
     })
   })
 
