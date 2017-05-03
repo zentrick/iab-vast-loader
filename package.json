@@ -60,7 +60,7 @@
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0",
     "standard": "^9.0.1",
-    "yargs": "^7.0.2"
+    "yargs": "^8.0.1"
   },
   "standard": {
     "globals": [
