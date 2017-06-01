@@ -21,7 +21,9 @@
     "clean": "gulp clean",
     "build": "gulp build",
     "prepublish": "in-publish && npm run build || not-in-publish",
-    "test": "gulp test"
+    "test": "gulp test",
+    "test2": "gulp test2",
+    "flow": "flow"
   },
   "repository": "zentrick/iab-vast-loader",
   "bugs": "https://github.com/zentrick/iab-vast-loader/issues",
@@ -29,13 +31,19 @@
     "eventemitter3": "^2.0.0",
     "iab-vast-model": "^0.4.0",
     "iab-vast-parser": "^0.4.1",
-    "isomorphic-fetch": "^2.2.1"
+    "invariant": "^2.2.2",
+    "isomorphic-fetch": "^2.2.1",
+    "rxjs": "^5.4.0",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
     "babel-plugin-transform-builtin-extend": "^1.1.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.1.8",
     "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-stage-3": "^6.24.1",
     "babel-register": "^6.24.0",
     "babel-runtime": "^6.23.0",
     "chai": "^3.5.0",
@@ -44,6 +52,7 @@
     "del": "^2.2.0",
     "dirty-chai": "^1.2.2",
     "express": "^4.15.2",
+    "flow-bin": "^0.46.0",
     "fs-promise": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
@@ -64,6 +73,7 @@
     "yargs": "^7.0.2"
   },
   "standard": {
+    "parser": "babel-eslint",
     "globals": [
       "describe",
       "it",
@@ -75,7 +85,9 @@
       "sinon",
       "fetch",
       "XMLHttpRequest",
-      "Headers"
+      "$Keys",
+      "$PropertyType",
+      "RequestOptions"
     ]
   }
 }
