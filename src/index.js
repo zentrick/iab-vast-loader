@@ -5,7 +5,7 @@ import { Wrapper } from 'iab-vast-model'
 import VASTLoaderError from './error'
 import atob from './atob'
 
-const RE_DATA_URI = /^data:.*?(;\s*base64)?,(.*)/
+const RE_DATA_URI = /^data:(.*?)(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
   maxDepth: 10,
   credentials: 'omit',
@@ -45,11 +45,10 @@ export default class Loader extends EventEmitter {
         this._emit('willFetch', { uri })
         const match = RE_DATA_URI.exec(uri)
         return (match == null) ? this._fetchUri()
-          : (match[1] != null) ? atob(match[2])
-          : decodeURIComponent(match[2])
+          : this._parseDataUri(match[3], match[1], (match[2] != null))
       })
-      .then((body) => {
-        this._emit('didFetch', { uri, body })
+      .then(({ headers, body }) => {
+        this._emit('didFetch', { uri, headers, body })
         this._emit('willParse', { uri, body })
         const vast = parse(body)
         this._emit('didParse', { uri, body, vast })
@@ -65,6 +64,12 @@ export default class Loader extends EventEmitter {
       })
   }
 
+  _parseDataUri (data, mimeType, isBase64) {
+    const headers = new Headers({ 'Content-Type': mimeType })
+    const body = isBase64 ? atob(data) : decodeURIComponent(data)
+    return { headers, body }
+  }
+
   _loadWrapped (vastAdTagURI, vast) {
     return Promise.resolve()
       .then(() => {
@@ -75,14 +80,13 @@ export default class Loader extends EventEmitter {
         const childLoader = new Loader(vastAdTagURI, null, this)
         return childLoader.load()
       })
-      .then((children) => {
-        return [vast, ...children]
-      })
+      .then((children) => ([vast, ...children]))
   }
 
   _fetchUri () {
     const fetching = fetch(this._uri, this._fetchOptions)
     const timingOut = this._createTimeouter(fetching)
+    let headers
     return Promise.race([fetching, timingOut])
       .then((response) => {
         timingOut.cancel()
@@ -90,8 +94,10 @@ export default class Loader extends EventEmitter {
           // TODO Convert response to HTTPError
           throw new VASTLoaderError(900, response)
         }
+        headers = response.headers
         return response.text()
       })
+      .then((body) => ({ headers, body }))
       .catch((err) => {
         timingOut.cancel()
         if (this._depth > 1) {

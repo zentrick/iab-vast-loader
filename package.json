@@ -74,7 +74,8 @@
       "expect",
       "sinon",
       "fetch",
-      "XMLHttpRequest"
+      "XMLHttpRequest",
+      "Headers"
     ]
   }
 }
