@@ -16,8 +16,8 @@ const loader = new VASTLoader(tagUrl)
 
 // Load the tag chain and await the resulting Promise
 loader.load()
-  .then((tree) => {
-    console.info('Loaded VAST tags:', tree)
+  .then((chain) => {
+    console.info('Loaded VAST tags:', chain)
   })
   .catch((err) => {
     console.error('Error loading tag:', err)
@@ -36,19 +36,8 @@ Creates a VAST loader.
 loader.load()
 ```
 
-Returns a `Promise` for a `VASTTreeNode` instance.
-A `VASTTreeNode` has a property called `vast` which contains the loaded VAST document, parsed into a `VAST` class.
-This `VAST` class is provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
-The `VASTTreeNode` also has a property called `childNodes` that contains an array of "sub ads", again instances of `VASTTreeNode`.
-
-## VASTTreeNode
-
-```js
-node.vast // the VAST document
-node.childNodes // array of VASTTreeNode
-node.firstChild // first element in the childNodes array
-node.hasChildNodes() // function that tells you if any sub ads where present
-```
+Returns a `Promise` for an array of `VAST` instances. The `VAST` class is
+provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
 
 ## Error Handling
 

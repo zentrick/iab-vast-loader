@@ -2,7 +2,6 @@ import express from 'express'
 import fsp from 'fs-promise'
 import path from 'path'
 import { default as VASTLoader, VASTLoaderError } from '../../src/'
-import VASTTreeNode from '../../src/vast-tree-node'
 
 const expectLoaderError = (error, code, message, cause) => {
   expect(error).to.be.an.instanceof(VASTLoaderError)
@@ -13,12 +12,42 @@ const expectLoaderError = (error, code, message, cause) => {
   }
 }
 
+describe('VASTLoaderError', function () {
+  describe('#code', function () {
+    it('gets set from the constructor', function () {
+      const error = new VASTLoaderError(301)
+      expect(error.code).to.equal(301)
+    })
+  })
+
+  describe('#message', function () {
+    it('resolves from the code', function () {
+      const error = new VASTLoaderError(301)
+      expect(error.message).to.equal('Timeout.')
+    })
+  })
+
+  describe('#cause', function () {
+    it('gets set from the constructor', function () {
+      const cause = new Error('Foo')
+      const error = new VASTLoaderError(301, cause)
+      expect(error.cause).to.equal(cause)
+    })
+  })
+
+  describe('#$type', function () {
+    it('is VASTLoaderError', function () {
+      const error = new VASTLoaderError(900)
+      expect(error.$type).to.equal('VASTLoaderError')
+    })
+  })
+})
+
 describe('VASTLoader', function () {
   const fixturesPath = path.resolve(__dirname, '../fixtures')
   const proxyPaths = {
     'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml': 'tremor-video/vast_inline_linear.xml',
     'http://example.com/no-ads.xml': 'no-ads.xml',
-    'http://example.com/no-ads-alt.xml': 'no-ads-alt.xml',
     'http://example.com/invalid-ads.xml': 'invalid-ads.xml'
   }
 
@@ -75,27 +104,16 @@ describe('VASTLoader', function () {
   describe('#load()', function () {
     it('loads the InLine', async function () {
       const loader = createLoader('tremor-video/vast_inline_linear.xml')
-      const tree = await loader.load()
-      expect(tree).to.be.an.instanceof(VASTTreeNode)
-      expect(tree.hasChildNodes()).to.be.false
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(1)
     })
 
     it('loads the Wrapper', async function () {
       const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml')
-      const tree = await loader.load()
-      expect(tree).to.be.an.instanceof(VASTTreeNode)
-      expect(tree.hasChildNodes()).to.be.true
-      expect(tree.childNodes.length).to.equal(1)
-    })
-
-    xit('loads alls ads in a Wrapper', async function () {
-      // iab-vast-parser first needs to support ad buffets
-      const loader = createLoader('ads-wrapper-multi.xml')
-      const tree = await loader.load()
-      expect(tree).to.be.an.instanceof(VASTTreeNode)
-      expect(tree.hasChildNodes()).to.be.true
-      expect(tree.childNodes.length).to.equal(2)
-      expect(tree.childNodes[0]).to.equal(tree.firstChild)
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(2)
     })
 
     it('loads the InLine as Base64', async function () {
@@ -103,9 +121,9 @@ describe('VASTLoader', function () {
       const base64 = (await fsp.readFile(file)).toString('base64')
       const dataUri = 'data:text/xml;base64,' + base64
       const loader = new VASTLoader(dataUri)
-      const tree = await loader.load()
-      expect(tree).to.be.an.instanceof(VASTTreeNode)
-      expect(tree.hasChildNodes()).to.be.false
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(1)
     })
 
     it('loads the InLine as XML', async function () {
@@ -113,16 +131,16 @@ describe('VASTLoader', function () {
       const xml = (await fsp.readFile(file, 'utf8')).replace(/\r?\n/g, '')
       const dataUri = 'data:text/xml,' + xml
       const loader = new VASTLoader(dataUri)
-      const tree = await loader.load()
-      expect(tree).to.be.an.instanceof(VASTTreeNode)
-      expect(tree.hasChildNodes()).to.be.false
+      const chain = await loader.load()
+      expect(chain).to.be.an.instanceof(Array)
+      expect(chain.length).to.equal(1)
     })
 
     it('loads the empty tag', async function () {
       const loader = createLoader('no-ads.xml')
-      const tree = await loader.load()
-      expect(tree.hasChildNodes()).to.be.false
-      expect(tree.vast.ads.length).to.equal(0)
+      const chain = await loader.load()
+      expect(chain.length).to.equal(1)
+      expect(chain[0].ads.length).to.equal(0)
     })
 
     it('throws VAST 303 on empty InLine inside Wrapper', async function () {

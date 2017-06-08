@@ -2,7 +2,6 @@ import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
 import parse from 'iab-vast-parser'
 import { Wrapper } from 'iab-vast-model'
-import VASTTreeNode from './vast-tree-node'
 import VASTLoaderError from './error'
 import atob from './atob'
 
@@ -45,13 +44,9 @@ export default class Loader extends EventEmitter {
       .then(() => {
         this._emit('willFetch', { uri })
         const match = RE_DATA_URI.exec(uri)
-        if (match == null) {
-          return this._fetchUri()
-        } else if (match[1] != null) {
-          return atob(match[2])
-        } else {
-          return decodeURIComponent(match[2])
-        }
+        return (match == null) ? this._fetchUri()
+          : (match[1] != null) ? atob(match[2])
+          : decodeURIComponent(match[2])
       })
       .then((body) => {
         this._emit('didFetch', { uri, body })
@@ -59,20 +54,14 @@ export default class Loader extends EventEmitter {
         const vast = parse(body)
         this._emit('didParse', { uri, body, vast })
         if (vast.ads.length > 0) {
-          const adsToLoad = []
-          for (var i = 0; i < vast.ads.length; i++) {
-            var ad = vast.ads.get(i)
-            if (ad instanceof Wrapper || ad.$type === 'Wrapper') {
-              adsToLoad.push(this._loadWrapped(ad.vastAdTagURI, vast))
-            }
+          const ad = vast.ads.get(0)
+          if (ad instanceof Wrapper || ad.$type === 'Wrapper') {
+            return this._loadWrapped(ad.vastAdTagURI, vast)
           }
-          return Promise.all(adsToLoad).then((ads) => {
-            return new VASTTreeNode(vast, ads)
-          })
         } else if (this._depth > 1) {
           throw new VASTLoaderError(303)
         }
-        return new VASTTreeNode(vast)
+        return [vast]
       })
   }
 
@@ -85,6 +74,9 @@ export default class Loader extends EventEmitter {
         }
         const childLoader = new Loader(vastAdTagURI, null, this)
         return childLoader.load()
+      })
+      .then((children) => {
+        return [vast, ...children]
       })
   }
 
