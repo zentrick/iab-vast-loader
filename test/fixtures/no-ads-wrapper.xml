@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<VAST version="2.0">
-  <Ad>
-    <Wrapper>
-      <VASTAdTagURI>http://example.com/no-ads.xml</VASTAdTagURI>
-    </Wrapper>
-  </Ad>
-</VAST>

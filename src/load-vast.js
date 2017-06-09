@@ -90,7 +90,7 @@ const loadVastTree = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadActi
       } else {
         const { vast } = output
 
-        if (!vast.followAdditionalWrappers() && vast.depth > config.maxDepth) {
+        if (!vast.followAdditionalWrappers() || vast.depth === config.maxDepth) {
           // We don't fetch additional children.
           return Observable.empty()
         } else {
@@ -124,11 +124,11 @@ const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction>
   sfx.http(config.url, { method: 'GET' })
     .retry(config.retryCount)
     .timeout(config.timeout)
-    .catch(error => {
+    .catch(() => {
       if (config.parent == null) {
-        throw new VASTLoaderError('900', error)
+        throw new VASTLoaderError('900')
       } else {
-        throw new VASTLoaderError('301', error)
+        throw new VASTLoaderError('301')
       }
     })
     .map(parseVast)
@@ -136,7 +136,7 @@ const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction>
       if (error instanceof VASTLoaderError) {
         throw error
       } else {
-        throw new VASTLoaderError('100', error)
+        throw new VASTLoaderError('100')
       }
     })
     .do(vast => addParentToVast(vast, config.parent))

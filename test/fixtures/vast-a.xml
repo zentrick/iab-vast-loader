@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="2.0">
+  <Ad id="0">
+    <InLine>
+      <AdSystem>Acudeo Compatible</AdSystem>
+      <AdTitle>VAST 2.0 Instream Test 1</AdTitle>
+      <Error>http://myErrorURL/error</Error>
+      <Impression>http://myTrackingURL/impression</Impression>
+    </InLine>
+  </Ad>
+  <Ad id="1">
+    <Wrapper>
+      <AdSystem>Acudeo Compatible</AdSystem>
+      <VASTAdTagURI>http://192.168.1.200:8080/vast-b.xml</VASTAdTagURI>
+      <Error>http://myErrorURL/wrapper/error</Error>
+      <Impression>http://myTrackingURL/wrapper/impression</Impression>
+    </Wrapper>
+  </Ad>
+  <Ad id="2">
+    <InLine>
+      <AdSystem>Acudeo Compatible</AdSystem>
+      <AdTitle>VAST 2.0 Instream Test 1</AdTitle>
+      <Error>http://myErrorURL/error</Error>
+      <Impression>http://myTrackingURL/impression</Impression>
+    </InLine>
+  </Ad>
+  <Ad id="3">
+    <Wrapper>
+      <AdSystem>Acudeo Compatible</AdSystem>
+      <VASTAdTagURI>http://192.168.1.200:8080/vast-c.xml</VASTAdTagURI>
+      <Error>http://myErrorURL/wrapper/error</Error>
+      <Impression>http://myTrackingURL/wrapper/impression</Impression>
+    </Wrapper>
+  </Ad>
+  <Ad id="4">
+    <InLine>
+      <AdSystem>Acudeo Compatible</AdSystem>
+      <AdTitle>VAST 2.0 Instream Test 1</AdTitle>
+      <Error>http://myErrorURL/error</Error>
+      <Impression>http://myTrackingURL/impression</Impression>
+    </InLine>
+  </Ad>
+</VAST>
