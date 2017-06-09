@@ -41,7 +41,7 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "core-js": "^2.4.0",
-    "del": "^2.2.0",
+    "del": "^3.0.0",
     "dirty-chai": "^1.2.2",
     "express": "^4.15.2",
     "fs-promise": "^2.0.0",
