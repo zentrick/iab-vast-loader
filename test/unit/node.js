@@ -60,18 +60,12 @@ describe('VASTLoader', function () {
 
   const proxifyFetchUri = function () {
     fetchUriImpl = VASTLoader.prototype._fetchUri
-    VASTLoader.prototype._fetchUri = async function () {
-      const target = proxyPaths[this._uri]
+    VASTLoader.prototype._fetchUri = async function (uri) {
+      const target = proxyPaths[uri]
       if (target == null) {
-        return await fetchUriImpl.call(this)
+        return await fetchUriImpl.call(this, uri)
       }
-      const oldUri = this._uri
-      this._uri = baseUrl + target
-      try {
-        return await fetchUriImpl.call(this)
-      } finally {
-        this._uri = oldUri
-      }
+      return await fetchUriImpl.call(this, baseUrl + target)
     }
   }
 

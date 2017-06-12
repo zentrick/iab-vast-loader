@@ -27,24 +27,23 @@ export default class Loader extends EventEmitter {
       this._options = Object.assign({}, DEFAULT_OPTIONS, options)
       this._depth = 1
     }
-    this._fetchOptions = this._buildFetchOptions()
+    this._fetchOptions = this._buildFetchOptions(uri)
   }
 
   load () {
-    return this._load()
+    return this._load(this._uri)
       .catch((error) => {
         this._emit('error', { error })
         throw error
       })
   }
 
-  _load () {
-    const uri = this._uri
+  _load (uri) {
     return Promise.resolve()
       .then(() => {
         this._emit('willFetch', { uri })
         const match = RE_DATA_URI.exec(uri)
-        return (match == null) ? this._fetchUri()
+        return (match == null) ? this._fetchUri(uri)
           : this._parseDataUri(match[3], match[1], (match[2] != null))
       })
       .then(({ headers, body }) => {
@@ -58,7 +57,7 @@ export default class Loader extends EventEmitter {
             return this._loadWrapped(ad.vastAdTagURI, vast)
           }
         } else if (this._depth > 1) {
-          throw new VASTLoaderError(303)
+          throw new VASTLoaderError(303, null, uri)
         }
         return [vast]
       })
@@ -75,7 +74,7 @@ export default class Loader extends EventEmitter {
       .then(() => {
         const { maxDepth } = this._options
         if (maxDepth > 0 && this._depth + 1 >= maxDepth) {
-          throw new VASTLoaderError(302)
+          throw new VASTLoaderError(302, null, vastAdTagURI)
         }
         const childLoader = new Loader(vastAdTagURI, null, this)
         return childLoader.load()
@@ -83,16 +82,16 @@ export default class Loader extends EventEmitter {
       .then((children) => ([vast, ...children]))
   }
 
-  _fetchUri () {
-    const fetching = fetch(this._uri, this._fetchOptions)
-    const timingOut = this._createTimeouter(fetching)
+  _fetchUri (uri) {
+    const fetching = fetch(uri, this._fetchOptions)
+    const timingOut = this._createTimeouter(fetching, uri)
     let headers
     return Promise.race([fetching, timingOut])
       .then((response) => {
         timingOut.cancel()
         if (!response.ok) {
           // TODO Convert response to HTTPError
-          throw new VASTLoaderError(900, response)
+          throw new VASTLoaderError(900, response, uri)
         }
         headers = response.headers
         return response.text()
@@ -101,19 +100,19 @@ export default class Loader extends EventEmitter {
       .catch((err) => {
         timingOut.cancel()
         if (this._depth > 1) {
-          throw new VASTLoaderError(301)
+          throw new VASTLoaderError(301, null, uri)
         } else {
           throw err
         }
       })
   }
 
-  _createTimeouter (fetching) {
+  _createTimeouter (fetching, uri) {
     const ms = this._options.timeout
     let timeout = null
     const timingOut = new Promise((resolve, reject) => {
       timeout = setTimeout(() => {
-        reject(new VASTLoaderError(301))
+        reject(new VASTLoaderError(301, null, uri))
       }, ms)
     })
     timingOut.cancel = () => {
@@ -125,11 +124,11 @@ export default class Loader extends EventEmitter {
     return timingOut
   }
 
-  _buildFetchOptions () {
+  _buildFetchOptions (uri) {
     const { credentials } = this._options
     switch (typeof credentials) {
       case 'string': return { credentials }
-      case 'function': return { credentials: credentials(this._uri) }
+      case 'function': return { credentials: credentials(uri) }
       default: throw new Error(`Invalid credentials option: ${credentials}`)
     }
   }
