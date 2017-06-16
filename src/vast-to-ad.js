@@ -6,12 +6,12 @@ import { type VastLoadAction } from './load-vast'
 
 type AdLoadedAction = { type: 'AD_LOADED', ad: Ad }
 
-type WrapperLoadingFailedAction = { type: 'WRAPPER_LOADING_FAILED', error: any, wrapper: ?Wrapper }
+type AdLoadingFailedAction = { type: 'AD_LOADING_FAILED', error: any, wrapper: ?Wrapper }
 
-type AdLoadAction = AdLoadedAction | WrapperLoadingFailedAction
+type AdLoadAction = AdLoadedAction | AdLoadingFailedAction
 
 // This function returns a depth first preorder stream of inline elements of the VAST chain.
-export const mapVastLoadActionsToAdLoadActions = (vast$: Observable<VastLoadAction>): Observable<AdLoadAction> =>
+export const vastToAd = (vast$: Observable<VastLoadAction>): Observable<AdLoadAction> =>
   vast$
     .concatMap(event => {
       if (event.type === 'VAST_LOADED') {
@@ -30,7 +30,7 @@ export const mapVastLoadActionsToAdLoadActions = (vast$: Observable<VastLoadActi
         const { wrapper, error } = event
 
         const wrapperLoadingFailedAction = {
-          type: 'WRAPPER_LOADING_FAILED',
+          type: 'AD_LOADING_FAILED',
           error,
           wrapper
         }
@@ -56,13 +56,13 @@ const getWrapperIndex = (wrapper: Wrapper): number =>
 
 const walkAdsUntilNextWrapper = (vast: VAST, fromIndex: number): Ad[] => {
   const adsFromIndex = vast.ads.slice(fromIndex)
-  const toIndex = fromIndex + adsFromIndex.findIndex(ad => ad instanceof Wrapper)
+  const toIndex = adsFromIndex.findIndex(ad => ad instanceof Wrapper)
 
   const ads = toIndex === -1
     // All the inLines until the end of the array.
     ? vast.ads.slice(fromIndex)
     // An array of inLine ads, ending with one wrapper ad.
-    : vast.ads.slice(fromIndex, toIndex + 1)
+    : vast.ads.slice(fromIndex, fromIndex + toIndex + 1)
 
   if (toIndex === -1) {
     // This VAST file doesn't have Wrappers anymore so we can continue walking the tree upwards.

@@ -13,6 +13,7 @@ import 'rxjs/add/observable/empty'
 import 'rxjs/add/observable/of'
 import 'rxjs/add/observable/defer'
 import 'rxjs/add/observable/fromPromise'
+import 'rxjs/add/observable/from'
 
 // RxJS operators
 import 'rxjs/add/operator/retry'
@@ -25,12 +26,15 @@ import 'rxjs/add/operator/share'
 import 'rxjs/add/operator/concatMap'
 import 'rxjs/add/operator/toArray'
 import 'rxjs/add/operator/toPromise'
+import 'rxjs/add/operator/elementAt'
 
 type VastLoadedAction = { type: 'VAST_LOADED', vast: VAST }
 
-type VastLoadingFailedAction = { type: 'VAST_LOADING_FAILED', error: any, wrapper: ?Wrapper }
+type VastLoadingFailedAction = { type: 'VAST_LOADING_FAILED', error: VASTLoaderError, wrapper: ?Wrapper }
 
-export type VastLoadAction = VastLoadedAction | VastLoadingFailedAction
+export type VastLoadAction =
+  VastLoadedAction |
+  VastLoadingFailedAction
 
 export const http = (url: string, options?: RequestOptions) =>
   Observable.defer(() => fetch(url, options))
@@ -40,12 +44,14 @@ const defaultSfx = {
   http
 }
 
+type Credentials = CredentialsType | (url: string) => CredentialsType
+
 type Config = {
   url: string,
   maxDepth?: number,
   timeout?: number,
   retryCount?: number,
-  withCredentials?: boolean
+  credentials: Credentials[]
 }
 
 type SFX = {
@@ -56,7 +62,7 @@ const DEFAULT_OPTIONS = {
   maxDepth: 10,
   timeout: 10000,
   retryCount: 0,
-  withCredentials: false
+  credentials: ['omit']
 }
 
 export const loadVast = (config: Config, sfx: SFX = defaultSfx): Observable<VastLoadAction> =>
@@ -72,7 +78,7 @@ type LoadVastConfig = {
   maxDepth: number,
   timeout: number,
   retryCount: number,
-  withCredentials: boolean
+  credentials: Credentials[]
 }
 
 // Traverse the tree using a preorder depth first strategy.
@@ -89,10 +95,16 @@ const loadVastTree = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadActi
         return Observable.empty()
       } else {
         const { vast } = output
+        const wrappers = getWrappers(vast)
 
         if (!vast.followAdditionalWrappers() || vast.depth === config.maxDepth) {
-          // We don't fetch additional children.
-          return Observable.empty()
+          return Observable.from(
+            wrappers.map(wrapper => ({
+              type: 'VAST_LOADING_FAILED',
+              wrapper,
+              error: new VASTLoaderError('302')
+            }))
+          )
         } else {
           // We start fetching all the children.
           const results = getWrappers(vast).map(wrapper =>
@@ -121,9 +133,26 @@ const getWrappers = (vast: VAST): Wrapper[] =>
 
 // This function returns a stream with exact one event: a success or error event.
 const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction> =>
-  sfx.http(config.url, { method: 'GET' })
-    .retry(config.retryCount)
-    .timeout(config.timeout)
+  Observable.from(config.credentials)
+    .map(credentials =>
+      typeof credentials === 'string'
+        ? credentials
+        : credentials(config.url)
+    )
+    .mergeMap(credentials =>
+      sfx
+        .http(config.url, {
+          method: 'GET',
+          credentials
+        })
+        .retry(config.retryCount)
+        .timeout(config.timeout)
+        // Swallow errors.
+        .catch(() => Observable.empty())
+    )
+    // When there are only errors, the resulting stream will be empty, which
+    // will make elemetAt(0) fail, which is the expected behavior.
+    .elementAt(0)
     .catch(() => {
       if (config.parent == null) {
         throw new VASTLoaderError('900')
@@ -132,13 +161,6 @@ const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction>
       }
     })
     .map(parseVast)
-    .catch(error => {
-      if (error instanceof VASTLoaderError) {
-        throw error
-      } else {
-        throw new VASTLoaderError('100')
-      }
-    })
     .do(vast => addParentToVast(vast, config.parent))
     .map(vast => ({
       type: 'VAST_LOADED',
@@ -150,7 +172,13 @@ const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction>
       wrapper: config.parent
     }))
 
-const parseVast = (res: string) => parse(res)
+const parseVast = (res: string) => {
+  try {
+    return parse(res)
+  } catch (err) {
+    throw new VASTLoaderError('100')
+  }
+}
 
 const addParentToVast = (vast: VAST, parent: ?Wrapper) => {
   vast.parent = parent

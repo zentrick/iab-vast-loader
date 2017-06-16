@@ -1,27 +1,11 @@
-import { VAST } from 'iab-vast-model'
-import parseVast from 'iab-vast-parser'
 import { loadVast } from '../../src/load-vast'
-import path from 'path'
-import fs from 'fs'
-import express from 'express'
 import VASTLoaderError from '../../src/error'
+import { buildVast } from '../lib/build-vast'
 
 import { TestScheduler } from 'rxjs/testing/TestScheduler'
 import { Observable } from 'rxjs/Observable'
-import 'rxjs/add/observable/timer'
-import 'rxjs/add/operator/mergeMapTo'
 
 import times from 'lodash/times'
-
-const fixturesPath = path.resolve(__dirname, '../fixtures')
-
-const buildVastVars = vastPath => {
-  const url = 'http://192.168.1.200:8080/' + vastPath
-  const str = fs.readFileSync(path.join(fixturesPath, vastPath), 'utf8')
-  const model = parseVast(str)
-
-  return { url, str, model }
-}
 
 let originalTimeout
 
@@ -43,24 +27,10 @@ const assertDeepEqual = (actual, expected) => {
   expect(actual).to.deep.equal(expected)
 }
 
+const vast = buildVast()
+
 describe('#loadVast()', () => {
   let scheduler, cold
-
-  let vastA, vastB, vastC, vastD, vastE, vastStandalone
-
-  before(() => {
-    vastA = buildVastVars('vast-a.xml')
-    vastB = buildVastVars('vast-b.xml')
-    vastC = buildVastVars('vast-c.xml')
-    vastD = buildVastVars('vast-d.xml')
-    vastE = buildVastVars('vast-e.xml')
-    vastStandalone = buildVastVars('vast-standalone.xml')
-
-    vastB.model.parent = vastA.model.ads[1]
-    vastC.model.parent = vastA.model.ads[3]
-    vastD.model.parent = vastB.model.ads[0]
-    vastE.model.parent = vastB.model.ads[2]
-  })
 
   beforeEach(() => {
     scheduler = new TestScheduler(assertDeepEqual)
@@ -77,7 +47,7 @@ describe('#loadVast()', () => {
 
     httpStub
       .onCall(0)
-      .returns(cold('---(a|)', { a: vastStandalone.str }))
+      .returns(cold('---(a|)', { a: vast.standalone.str }))
 
     httpStub.throws()
 
@@ -85,16 +55,73 @@ describe('#loadVast()', () => {
       http: fxFactory(httpStub)
     }
 
-    const actual$ = loadVast({ url: vastStandalone.url }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url }, fx)
 
     const expected = '---(a|)'
-    const values = { a: { type: 'VAST_LOADED', vast: vastStandalone.model } }
+    const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
 
     scheduler.expectObservable(actual$).toBe(expected, values)
     scheduler.flush()
 
     expect(httpStub.callCount).to.equal(1)
-    expect(httpStub.getCall(0).args).to.deep.equal([vastStandalone.url, { method: 'GET' }])
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
+  })
+
+  it('should load a VAST document by racing the passed credentials strategies and ignoring failed requests', () => {
+    // ----(a|)
+    // ---(a|)
+    // --(#|)
+    // ---(a|)
+
+    const httpStub = sinon.stub()
+    const credentialStub = sinon.stub()
+
+    httpStub
+      .onCall(0)
+      .returns(cold('----(a|)', { a: vast.standalone.str }))
+
+    httpStub
+      .onCall(1)
+      .returns(cold('---(a|)', { a: vast.standalone.str }))
+
+    httpStub
+      .onCall(2)
+      .returns(cold('--(#|)', null, new Error('http failed')))
+
+    httpStub.throws()
+
+    credentialStub
+      .onCall(0)
+      .returns('include')
+
+    credentialStub.throws()
+
+    const fx = {
+      http: fxFactory(httpStub)
+    }
+
+    const actual$ = loadVast({
+      url: vast.standalone.url,
+      credentials: [
+        'omit',
+        'same-origin',
+        credentialStub
+      ]
+    }, fx)
+
+    const expected = '---(a|)'
+    const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
+
+    scheduler.expectObservable(actual$).toBe(expected, values)
+    scheduler.flush()
+
+    expect(httpStub.callCount).to.equal(3)
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(1).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'same-origin' }])
+    expect(httpStub.getCall(2).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'include' }])
+
+    expect(credentialStub.callCount).to.equal(1)
+    expect(credentialStub.getCall(0).args).to.deep.equal([vast.standalone.url])
   })
 
   it('should retry loading a VAST document', () => {
@@ -110,7 +137,7 @@ describe('#loadVast()', () => {
 
     httpStub
       .onCall(2)
-      .returns(cold('---(a|)', { a: vastStandalone.str }))
+      .returns(cold('---(a|)', { a: vast.standalone.str }))
 
     httpStub.throws()
 
@@ -118,10 +145,10 @@ describe('#loadVast()', () => {
       http: fxFactory(httpStub)
     }
 
-    const actual$ = loadVast({ url: vastStandalone.url, retryCount: 2 }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url, retryCount: 2 }, fx)
 
     const expected = '---------(a|)'
-    const values = { a: { type: 'VAST_LOADED', vast: vastStandalone.model } }
+    const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
 
     scheduler.expectObservable(actual$).toBe(expected, values)
     scheduler.flush()
@@ -129,41 +156,34 @@ describe('#loadVast()', () => {
     expect(httpStub.callCount).to.equal(3)
 
     times(3, i => {
-      expect(httpStub.getCall(i).args).to.deep.equal([vastStandalone.url, { method: 'GET' }])
+      expect(httpStub.getCall(i).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
     })
   })
 
   it('should load a complete VAST tree', async () => {
-    // --(a|)
-    //   -----(b|)
-    //   --(c|)
-    //        --(d|)
-    //        -----(e|)
-    // --a----b-d--(ec|)
-
     const httpStub = sinon.stub()
 
-    const vastA$ = cold('--(a|)', { a: vastA.str })
+    const vastA$ = cold('--(a|)', { a: vast.a.str })
     httpStub
       .onCall(0)
       .returns(vastA$)
 
-    const vastB$ = cold('-----(b|)', { b: vastB.str })
+    const vastB$ = cold('-----(b|)', { b: vast.b.str })
     httpStub
       .onCall(1)
       .returns(vastB$)
 
     httpStub
       .onCall(2)
-      .returns(cold('--(c|)', { c: vastC.str }))
+      .returns(cold('--(c|)', { c: vast.c.str }))
 
     httpStub
       .onCall(3)
-      .returns(cold('--(d|)', { d: vastD.str }))
+      .returns(cold('--(d|)', { d: vast.d.str }))
 
     httpStub
       .onCall(4)
-      .returns(cold('-----(e|)', { e: vastE.str }))
+      .returns(cold('-----(e|)', { e: vast.e.str }))
 
     httpStub.throws()
 
@@ -171,14 +191,14 @@ describe('#loadVast()', () => {
       http: fxFactory(httpStub)
     }
 
-    const actual$ = loadVast({ url: vastA.url }, fx)
+    const actual$ = loadVast({ url: vast.a.url }, fx)
     const expected = '--a----b-d--(ec|)'
     const values = {
-      a: { type: 'VAST_LOADED', vast: vastA.model },
-      b: { type: 'VAST_LOADED', vast: vastB.model },
-      c: { type: 'VAST_LOADED', vast: vastC.model },
-      d: { type: 'VAST_LOADED', vast: vastD.model },
-      e: { type: 'VAST_LOADED', vast: vastE.model }
+      a: { type: 'VAST_LOADED', vast: vast.a.model },
+      b: { type: 'VAST_LOADED', vast: vast.b.model },
+      c: { type: 'VAST_LOADED', vast: vast.c.model },
+      d: { type: 'VAST_LOADED', vast: vast.d.model },
+      e: { type: 'VAST_LOADED', vast: vast.e.model }
     }
 
     scheduler.expectObservable(actual$).toBe(expected, values)
@@ -187,19 +207,19 @@ describe('#loadVast()', () => {
     scheduler.flush()
 
     expect(httpStub.callCount).to.equal(5)
-    expect(httpStub.getCall(0).args).to.deep.equal([vastA.url, { method: 'GET' }])
-    expect(httpStub.getCall(1).args).to.deep.equal([vastB.url, { method: 'GET' }])
-    expect(httpStub.getCall(2).args).to.deep.equal([vastC.url, { method: 'GET' }])
-    expect(httpStub.getCall(3).args).to.deep.equal([vastD.url, { method: 'GET' }])
-    expect(httpStub.getCall(4).args).to.deep.equal([vastE.url, { method: 'GET' }])
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.a.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(1).args).to.deep.equal([vast.b.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(2).args).to.deep.equal([vast.c.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(3).args).to.deep.equal([vast.d.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(4).args).to.deep.equal([vast.e.url, { method: 'GET', credentials: 'omit' }])
   })
 
-  it('should timeout when loading the VAST document', () => {
+  it('should return a VAST_LOADING_FAILED action when the root VAST document timeouts', () => {
     const httpStub = sinon.stub()
 
     httpStub
       .onCall(0)
-      .returns(cold('---(a|)', { a: vastStandalone.str }))
+      .returns(cold('---(a|)', { a: vast.standalone.str }))
 
     httpStub.throws()
 
@@ -207,7 +227,7 @@ describe('#loadVast()', () => {
       http: fxFactory(httpStub)
     }
 
-    const actual$ = loadVast({ url: vastStandalone.url, timeout: 20 }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url, timeout: 20 }, fx)
     const expected = '--(a|)'
     const values = {
       a: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: null }
@@ -217,46 +237,133 @@ describe('#loadVast()', () => {
     scheduler.flush()
 
     expect(httpStub.callCount).to.equal(1)
-    expect(httpStub.getCall(0).args).to.deep.equal([vastStandalone.url, { method: 'GET' }])
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
   })
 
-  it('should not fetch additional documents if maxDepth is exceeded', () => {
-    // --(a|)
-    //   -----(b|)
-    //   --(c|)
-    // --a----(bc|)
+  describe('', () => {
+    let vastBParent
+    before(() => {
+      // Temporarily reset the parent of vast.b
+      vastBParent = vast.b.model.parent
+      vast.b.model.parent = null
+    })
 
+    it('should return a VAST_LOADING_FAILED action when a non-root VAST document timeouts', () => {
+      // --(b|)
+      //   -----(#|)
+      //   --(e|)
+      // --b----(de|)
+
+      const httpStub = sinon.stub()
+
+      httpStub
+        .onCall(0)
+        .returns(cold('--(b|)', { b: vast.b.str }))
+
+      httpStub
+        .onCall(1)
+        .returns(cold('-----(#|)', null, new Error('http failed')))
+
+      httpStub
+        .onCall(2)
+        .returns(cold('--(e|)', { e: vast.e.str }))
+
+      httpStub.throws()
+
+      const fx = {
+        http: fxFactory(httpStub)
+      }
+
+      const actual$ = loadVast({ url: vast.b.url }, fx)
+      const expected = '--b----(de|)'
+      const values = {
+        b: { type: 'VAST_LOADED', vast: vast.b.model },
+        d: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('301'), wrapper: vast.b.model.ads[0] },
+        e: { type: 'VAST_LOADED', vast: vast.e.model }
+      }
+
+      scheduler.expectObservable(actual$).toBe(expected, values)
+      scheduler.flush()
+
+      expect(httpStub.callCount).to.equal(3)
+      expect(httpStub.getCall(0).args).to.deep.equal([vast.b.url, { method: 'GET', credentials: 'omit' }])
+      expect(httpStub.getCall(1).args).to.deep.equal([vast.d.url, { method: 'GET', credentials: 'omit' }])
+      expect(httpStub.getCall(2).args).to.deep.equal([vast.e.url, { method: 'GET', credentials: 'omit' }])
+    })
+
+    after(() => {
+      vast.b.model.parent = vastBParent
+    })
+  })
+
+  it('should return a VAST_LOADING_FAILED action when the XML document is not valid', () => {
     const httpStub = sinon.stub()
 
     httpStub
       .onCall(0)
-      .returns(cold('--(a|)', { a: vastA.str }))
-
-    httpStub
-      .onCall(1)
-      .returns(cold('-----(b|)', { b: vastB.str }))
-
-    httpStub
-      .onCall(2)
-      .returns(cold('--(c|)', { c: vastC.str }))
+      .returns(cold('---(a|)', { a: 'malformed xml' }))
 
     httpStub.throws()
 
     const fx = {
       http: fxFactory(httpStub)
     }
-    const actual$ = loadVast({ url: vastA.url, maxDepth: 1 }, fx)
 
-    const expected = '--a----(bc|)'
+    const actual$ = loadVast({ url: vast.standalone.url }, fx)
+    const expected = '---(a|)'
     const values = {
-      a: { type: 'VAST_LOADED', vast: vastA.model },
-      b: { type: 'VAST_LOADED', vast: vastB.model },
-      c: { type: 'VAST_LOADED', vast: vastC.model }
+      a: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('100'), wrapper: null }
+    }
+
+    scheduler.expectObservable(actual$).toBe(expected, values)
+    scheduler.flush()
+
+    expect(httpStub.callCount).to.equal(1)
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
+  })
+
+  it('should not fetch additional documents if maxDepth is exceeded', () => {
+    // --(a|)
+    //   -----(b|)
+    //   --(c|)
+    // --a----(bdec|)
+
+    const httpStub = sinon.stub()
+
+    httpStub
+      .onCall(0)
+      .returns(cold('--(a|)', { a: vast.a.str }))
+
+    httpStub
+      .onCall(1)
+      .returns(cold('-----(b|)', { b: vast.b.str }))
+
+    httpStub
+      .onCall(2)
+      .returns(cold('--(c|)', { c: vast.c.str }))
+
+    httpStub.throws()
+
+    const fx = {
+      http: fxFactory(httpStub)
+    }
+    const actual$ = loadVast({ url: vast.a.url, maxDepth: 1 }, fx)
+
+    const expected = '--a----(bdec|)'
+    const values = {
+      a: { type: 'VAST_LOADED', vast: vast.a.model },
+      b: { type: 'VAST_LOADED', vast: vast.b.model },
+      d: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.ads[0], error: new VASTLoaderError('302') },
+      e: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.ads[2], error: new VASTLoaderError('302') },
+      c: { type: 'VAST_LOADED', vast: vast.c.model }
     }
 
     scheduler.expectObservable(actual$).toBe(expected, values)
     scheduler.flush()
 
     expect(httpStub.callCount).to.equal(3)
+    expect(httpStub.getCall(0).args).to.deep.equal([vast.a.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(1).args).to.deep.equal([vast.b.url, { method: 'GET', credentials: 'omit' }])
+    expect(httpStub.getCall(2).args).to.deep.equal([vast.c.url, { method: 'GET', credentials: 'omit' }])
   })
 })

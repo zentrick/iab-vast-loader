@@ -87,7 +87,8 @@
       "XMLHttpRequest",
       "$Keys",
       "$PropertyType",
-      "RequestOptions"
+      "RequestOptions",
+      "CredentialsType"
     ]
   }
 }
