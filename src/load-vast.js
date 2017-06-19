@@ -4,15 +4,13 @@ import { type VAST, Wrapper } from 'iab-vast-model'
 import parse from 'iab-vast-parser'
 import VASTLoaderError from './error'
 import { concatEager } from './concat-eager'
-import fetch from 'isomorphic-fetch'
+import { fx } from './rxjs-fx'
 
 import { Observable } from 'rxjs/Observable'
 
 // RxJS statics
 import 'rxjs/add/observable/empty'
 import 'rxjs/add/observable/of'
-import 'rxjs/add/observable/defer'
-import 'rxjs/add/observable/fromPromise'
 import 'rxjs/add/observable/from'
 
 // RxJS operators
@@ -36,14 +34,6 @@ export type VastLoadAction =
   VastLoadedAction |
   VastLoadingFailedAction
 
-export const http = (url: string, options?: RequestOptions) =>
-  Observable.defer(() => fetch(url, options))
-    .mergeMap(res => Observable.fromPromise(res.text()))
-
-const defaultSfx = {
-  http
-}
-
 type Credentials = CredentialsType | (url: string) => CredentialsType
 
 type Config = {
@@ -54,10 +44,6 @@ type Config = {
   credentials: Credentials[]
 }
 
-type SFX = {
-  http: typeof http
-}
-
 const DEFAULT_OPTIONS = {
   maxDepth: 10,
   timeout: 10000,
@@ -65,12 +51,12 @@ const DEFAULT_OPTIONS = {
   credentials: ['omit']
 }
 
-export const loadVast = (config: Config, sfx: SFX = defaultSfx): Observable<VastLoadAction> =>
+export const loadVast = (config: Config): Observable<VastLoadAction> =>
   loadVastTree({
     ...DEFAULT_OPTIONS,
     ...config,
     parent: null
-  }, sfx)
+  })
 
 type LoadVastConfig = {
   url: string,
@@ -82,11 +68,11 @@ type LoadVastConfig = {
 }
 
 // Traverse the tree using a preorder depth first strategy.
-const loadVastTree = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction> => {
+const loadVastTree = (config: LoadVastConfig): Observable<VastLoadAction> => {
   // We add share() because we want a multicast observable here, because
   // loadVast$ is subscribed to in multiple places and this would result in
   // multiple ajax requests for the same VAST document.
-  const loadVast$ = fetchVast(config, sfx).share()
+  const loadVast$ = fetchVast(config).share()
 
   const children$ = loadVast$
     .concatMap(output => {
@@ -112,7 +98,7 @@ const loadVastTree = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadActi
               ...config,
               url: wrapper.vastAdTagURI,
               parent: wrapper
-            }, sfx)
+            })
           )
 
           // We start fetching them all at once and return the results in order.
@@ -132,7 +118,7 @@ const getWrappers = (vast: VAST): Wrapper[] =>
     .filter(ad => ad instanceof Wrapper)
 
 // This function returns a stream with exact one event: a success or error event.
-const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction> =>
+const fetchVast = (config: LoadVastConfig): Observable<VastLoadAction> =>
   Observable.from(config.credentials)
     .map(credentials =>
       typeof credentials === 'string'
@@ -140,7 +126,7 @@ const fetchVast = (config: LoadVastConfig, sfx: SFX): Observable<VastLoadAction>
         : credentials(config.url)
     )
     .mergeMap(credentials =>
-      sfx
+      fx
         .http(config.url, {
           method: 'GET',
           credentials

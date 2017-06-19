@@ -1,4 +1,4 @@
-import { vastToAd } from '../../src/vast-to-ad'
+import { vastToAd } from '../../src'
 import { buildVast, buildAd } from '../lib/build-vast'
 import { TestScheduler } from 'rxjs/testing/TestScheduler'
 import VASTLoaderError from '../../src/error'

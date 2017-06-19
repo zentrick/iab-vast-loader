@@ -1,6 +1,7 @@
-import { loadVast } from '../../src/load-vast'
+import { loadVast } from '../../src'
 import VASTLoaderError from '../../src/error'
 import { buildVast } from '../lib/build-vast'
+import { fx } from '../../src/rxjs-fx'
 
 import { TestScheduler } from 'rxjs/testing/TestScheduler'
 import { Observable } from 'rxjs/Observable'
@@ -30,16 +31,20 @@ const assertDeepEqual = (actual, expected) => {
 const vast = buildVast()
 
 describe('#loadVast()', () => {
-  let scheduler, cold
+  let scheduler, cold, http
 
   beforeEach(() => {
     scheduler = new TestScheduler(assertDeepEqual)
     monkeyPatch(scheduler)
     cold = scheduler.createColdObservable.bind(scheduler)
+    // http will be stubbed in each test so we keep a reference to the original.
+    http = fx.http
   })
 
   afterEach(() => {
     restore()
+    // We restore the original http function.
+    fx.http = http
   })
 
   it('should load a VAST document', () => {
@@ -51,11 +56,9 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
-    const actual$ = loadVast({ url: vast.standalone.url }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url })
 
     const expected = '---(a|)'
     const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
@@ -96,9 +99,7 @@ describe('#loadVast()', () => {
 
     credentialStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
     const actual$ = loadVast({
       url: vast.standalone.url,
@@ -107,7 +108,7 @@ describe('#loadVast()', () => {
         'same-origin',
         credentialStub
       ]
-    }, fx)
+    })
 
     const expected = '---(a|)'
     const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
@@ -141,11 +142,9 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
-    const actual$ = loadVast({ url: vast.standalone.url, retryCount: 2 }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url, retryCount: 2 })
 
     const expected = '---------(a|)'
     const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
@@ -187,11 +186,9 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
-    const actual$ = loadVast({ url: vast.a.url }, fx)
+    const actual$ = loadVast({ url: vast.a.url })
     const expected = '--a----b-d--(ec|)'
     const values = {
       a: { type: 'VAST_LOADED', vast: vast.a.model },
@@ -223,11 +220,9 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
-    const actual$ = loadVast({ url: vast.standalone.url, timeout: 20 }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url, timeout: 20 })
     const expected = '--(a|)'
     const values = {
       a: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: null }
@@ -270,11 +265,9 @@ describe('#loadVast()', () => {
 
       httpStub.throws()
 
-      const fx = {
-        http: fxFactory(httpStub)
-      }
+      fx.http = fxFactory(httpStub)
 
-      const actual$ = loadVast({ url: vast.b.url }, fx)
+      const actual$ = loadVast({ url: vast.b.url })
       const expected = '--b----(de|)'
       const values = {
         b: { type: 'VAST_LOADED', vast: vast.b.model },
@@ -305,11 +298,9 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
+    fx.http = fxFactory(httpStub)
 
-    const actual$ = loadVast({ url: vast.standalone.url }, fx)
+    const actual$ = loadVast({ url: vast.standalone.url })
     const expected = '---(a|)'
     const values = {
       a: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('100'), wrapper: null }
@@ -344,10 +335,8 @@ describe('#loadVast()', () => {
 
     httpStub.throws()
 
-    const fx = {
-      http: fxFactory(httpStub)
-    }
-    const actual$ = loadVast({ url: vast.a.url, maxDepth: 1 }, fx)
+    fx.http = fxFactory(httpStub)
+    const actual$ = loadVast({ url: vast.a.url, maxDepth: 1 })
 
     const expected = '--a----(bdec|)'
     const values = {
