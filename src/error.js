@@ -1,26 +1,28 @@
+// @flow
+
 import codeToMessage from './error-codes'
 
-export default class VASTLoaderError extends Error {
-  constructor (code, cause = null, uri = null) {
+type Code = $Keys<typeof codeToMessage>
+
+export class VASTLoaderError extends Error {
+  _code: Code
+  _cause: any
+
+  constructor (code: Code, cause: any) {
     super(codeToMessage[code])
     this._code = code
     this._cause = cause
-    this._uri = uri
   }
 
-  get code () {
+  get code (): Code {
     return this._code
   }
 
-  get cause () {
+  get cause (): any {
     return this._cause
   }
 
-  get uri () {
-    return this._uri
-  }
-
-  get $type () {
+  get $type (): 'VASTLoaderError' {
     return 'VASTLoaderError'
   }
 }
