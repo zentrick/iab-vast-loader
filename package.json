@@ -2,7 +2,7 @@
   "name": "iab-vast-loader",
   "version": "0.8.0",
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "jsnext:main": "src/index.js",
   "author": "Zentrick nv (https://www.zentrick.com/)",
   "contributors": [
@@ -22,9 +22,7 @@
     "clean": "gulp clean",
     "build": "gulp build",
     "prepublish": "in-publish && npm run build || not-in-publish",
-    "test": "gulp test",
-    "test2": "gulp test2",
-    "flow": "flow"
+    "test": "flow check && gulp test"
   },
   "repository": "zentrick/iab-vast-loader",
   "bugs": "https://github.com/zentrick/iab-vast-loader/issues",

@@ -1,7 +1,7 @@
 import { vastToAd } from '../../src'
 import { buildVast, buildAd } from '../lib/build-vast'
 import { TestScheduler } from 'rxjs/testing/TestScheduler'
-import VASTLoaderError from '../../src/error'
+import { VASTLoaderError } from '../../src/error'
 
 const vast = buildVast()
 const ad = buildAd(vast)

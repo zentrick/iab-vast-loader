@@ -3,20 +3,21 @@
 import { Observable } from 'rxjs/Observable'
 import { type VAST, type Ad, Wrapper } from 'iab-vast-model'
 import { type VastLoadAction } from './load-vast'
+import { type VASTLoaderError } from './error'
 
 type AdLoadedAction = { type: 'AD_LOADED', ad: Ad }
 
-type AdLoadingFailedAction = { type: 'AD_LOADING_FAILED', error: any, wrapper: ?Wrapper }
+type AdLoadingFailedAction = { type: 'AD_LOADING_FAILED', error: VASTLoaderError, wrapper: ?Wrapper }
 
 type AdLoadAction = AdLoadedAction | AdLoadingFailedAction
 
 // This function returns a depth first preorder stream of inline elements of the VAST chain.
 export const vastToAd = (vast$: Observable<VastLoadAction>): Observable<AdLoadAction> =>
   vast$
-    .concatMap(event => {
-      if (event.type === 'VAST_LOADED') {
+    .concatMap(action => {
+      if (action.type === 'VAST_LOADED') {
         // VAST_LOADED
-        const { vast } = event
+        const { vast } = action
 
         const ads = walkAdsUntilNextWrapper(vast, 0)
 
@@ -27,7 +28,7 @@ export const vastToAd = (vast$: Observable<VastLoadAction>): Observable<AdLoadAc
           }))
       } else {
         // VAST_LOADING_FAILED
-        const { wrapper, error } = event
+        const { wrapper, error } = action
 
         const wrapperLoadingFailedAction = {
           type: 'AD_LOADING_FAILED',

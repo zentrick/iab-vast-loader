@@ -114,8 +114,10 @@ const loadVastTree = (config: LoadVastConfig): Observable<VastLoadAction> => {
 }
 
 const getWrappers = (vast: VAST): Wrapper[] =>
-  vast.ads
-    .filter(ad => ad instanceof Wrapper)
+  // We cast to any here, because Flow is pessimistic and doesn't allow downcasting.
+  // Another approach could be to add an additional map, and perform an invariant check.
+  // This has however (a very minor) performance impact at runtime and it adds unnecessary complexity.
+  (vast.ads.filter(ad => ad instanceof Wrapper): any)
 
 // This function returns a stream with exact one event: a success or error event.
 const fetchVast = (config: LoadVastConfig): Observable<VastLoadAction> =>
