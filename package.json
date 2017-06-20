@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "clean": "gulp clean",
-    "build": "gulp build",
+    "build": "gulp build && flow-copy-source src lib",
     "prepublish": "in-publish && npm run build || not-in-publish",
     "test": "flow check && gulp test"
   },
@@ -52,6 +52,7 @@
     "dirty-chai": "^1.2.2",
     "express": "^4.15.2",
     "flow-bin": "^0.46.0",
+    "flow-copy-source": "^1.1.0",
     "fs-promise": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
