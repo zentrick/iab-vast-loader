@@ -22,7 +22,8 @@
     "clean": "gulp clean",
     "build": "gulp build && flow-copy-source src lib",
     "prepublish": "in-publish && npm run build || not-in-publish",
-    "test": "flow check && gulp test"
+    "test": "flow check && gulp test",
+    "flow": "flow check"
   },
   "repository": "zentrick/iab-vast-loader",
   "bugs": "https://github.com/zentrick/iab-vast-loader/issues",
