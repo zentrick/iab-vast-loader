@@ -4,7 +4,7 @@ import codeToMessage from './error-codes'
 
 type Code = $Keys<typeof codeToMessage>
 
-export default class VASTLoaderError extends Error {
+export class VASTLoaderError extends Error {
   _code: Code
   _cause: any
 

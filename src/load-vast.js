@@ -2,7 +2,7 @@
 
 import { type VAST, Wrapper } from 'iab-vast-model'
 import parse from 'iab-vast-parser'
-import VASTLoaderError from './error'
+import { VASTLoaderError } from './error'
 import { concatEager } from './concat-eager'
 import { fx } from './rxjs-fx'
 
@@ -34,14 +34,14 @@ export type VastLoadAction =
   VastLoadedAction |
   VastLoadingFailedAction
 
-type Credentials = CredentialsType | (url: string) => CredentialsType
+type Credentials = (CredentialsType | (url: string) => CredentialsType)[]
 
 type Config = {
   url: string,
   maxDepth?: number,
   timeout?: number,
   retryCount?: number,
-  credentials: Credentials[]
+  credentials: Credentials
 }
 
 const DEFAULT_OPTIONS = {
@@ -64,7 +64,7 @@ type LoadVastConfig = {
   maxDepth: number,
   timeout: number,
   retryCount: number,
-  credentials: Credentials[]
+  credentials: Credentials
 }
 
 // Traverse the tree using a preorder depth first strategy.

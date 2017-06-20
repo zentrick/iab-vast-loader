@@ -1,5 +1,5 @@
 import { loadVast } from '../../src'
-import VASTLoaderError from '../../src/error'
+import { VASTLoaderError } from '../../src/error'
 import { buildVast } from '../lib/build-vast'
 import { fx } from '../../src/rxjs-fx'
 
@@ -7,6 +7,26 @@ import { TestScheduler } from 'rxjs/testing/TestScheduler'
 import { Observable } from 'rxjs/Observable'
 
 import times from 'lodash/times'
+
+// Throughout the tests we make use of the following VAST document tree.
+// This ASCII tree is generated using the test/lib/write-test-tree.js script.
+//
+// a: VAST
+// ├── p: InLine
+// ├─┬ q: Wrapper
+// │ └─┬ b: VAST
+// │   ├─┬ u: Wrapper
+// │   │ └─┬ d: VAST
+// │   │   └── y: InLine
+// │   ├── v: InLine
+// │   └─┬ w: Wrapper
+// │     └─┬ e: VAST
+// │       └── z: InLine
+// ├── r: InLine
+// ├─┬ s: Wrapper
+// │ └─┬ c: VAST
+// │   └── x: InLine
+// └── t: InLine
 
 let originalTimeout
 
