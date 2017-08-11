@@ -79,12 +79,17 @@ The maximum number of milliseconds to spend per HTTP request. The default is
 ### `credentials`
 
 Controls [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-behavior. You can either pass a string or a function.
+behavior. You can pass a string, an array of strings, or a function producing
+either of those.
 
 If you pass a string, it will be used as the value for the `credentials` option
 to every request.
 [Valid values](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)
 are `'omit'` (the default), `'same-origin'` and `'include'`.
+
+If you pass an array, each of the values in the array will be tried
+consecutively. For example, to first try each request with credentials and then
+without, you can pass `['include', 'omit']`.
 
 To control the behavior on a per-request basis, pass a function receiving the
 request URL and returning one of the accepted values. For example:

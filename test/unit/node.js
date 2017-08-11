@@ -1,4 +1,5 @@
 import express from 'express'
+import fetch from 'isomorphic-fetch'
 import fsp from 'fs-promise'
 import path from 'path'
 import { default as VASTLoader, VASTLoaderError } from '../../src/'
@@ -51,27 +52,14 @@ describe('VASTLoader', function () {
     'http://example.com/invalid-ads.xml': 'invalid-ads.xml'
   }
 
-  let fetchUriImpl
   let server
   let baseUrl
   let responseDelay
+  let localFetch
+  let failOnCredentials
 
-  const createLoader = (file, options) => new VASTLoader(baseUrl + file, options)
-
-  const proxifyFetchUri = function () {
-    fetchUriImpl = VASTLoader.prototype._fetchUri
-    VASTLoader.prototype._fetchUri = async function (uri) {
-      const target = proxyPaths[uri]
-      if (target == null) {
-        return await fetchUriImpl.call(this, uri)
-      }
-      return await fetchUriImpl.call(this, baseUrl + target)
-    }
-  }
-
-  const unproxifyFetchUri = function () {
-    VASTLoader.prototype._fetchUri = fetchUriImpl
-  }
+  const createLoader = (file, options) =>
+    new VASTLoader(baseUrl + file, Object.assign({}, options, { fetch: localFetch }))
 
   before(function (cb) {
     const app = express()
@@ -81,18 +69,26 @@ describe('VASTLoader', function () {
     app.use(express.static(fixturesPath))
     server = app.listen(function () {
       baseUrl = 'http://localhost:' + server.address().port + '/'
-      proxifyFetchUri()
       cb()
     })
   })
 
   after(function (cb) {
-    unproxifyFetchUri()
     server.close(cb)
   })
 
   beforeEach(function () {
     responseDelay = 0
+    failOnCredentials = false
+    localFetch = sinon.spy((uri, options) => {
+      if (options.credentials === 'include' && failOnCredentials) {
+        return Promise.reject(new Error('Credentials not allowed'))
+      }
+      if (uri in proxyPaths) {
+        uri = baseUrl + proxyPaths[uri]
+      }
+      return fetch(uri, options)
+    })
   })
 
   describe('#load()', function () {
@@ -193,14 +189,24 @@ describe('VASTLoader', function () {
       })
     }
 
-    it('emits error on errors', async function () {
+    it('emits fetchError on fetch errors', async function () {
       const spy = sinon.spy()
       const loader = createLoader('four-oh-four')
-      loader.on('error', spy)
+      loader.on('fetchError', spy)
       try {
         await loader.load()
       } catch (err) {}
-      expect(spy.calledOnce).to.be.true()
+      expect(spy.callCount).to.equal(1)
+    })
+
+    it('emits error on errors', async function () {
+      const spy = sinon.spy()
+      const loader = createLoader('four-oh-four')
+      loader.on('fetchError', spy)
+      try {
+        await loader.load()
+      } catch (err) {}
+      expect(spy.callCount).to.equal(1)
     })
   })
 
@@ -236,43 +242,52 @@ describe('VASTLoader', function () {
   })
 
   describe('credentials option', function () {
-    // TODO Use something nicer than inspecting private _fetchOptions
-
-    it('is "omit" by default', function () {
+    it('is "omit" by default', async function () {
       const loader = createLoader('tremor-video/vast_inline_linear.xml')
-      expect(loader._fetchOptions).to.eql({ credentials: 'omit' })
+      await loader.load()
+      expect(localFetch.callCount).to.equal(1)
+      expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'omit' })
     })
 
-    it('overrides with a string value', function () {
+    it('overrides with a string value', async function () {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: 'include'
       })
-      expect(loader._fetchOptions).to.eql({ credentials: 'include' })
+      await loader.load()
+      expect(localFetch.callCount).to.equal(1)
+      expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'include' })
     })
 
-    it('overrides with a function value', function () {
+    it('overrides with a function value', async function () {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
         credentials: (uri) => 'same-origin'
       })
-      expect(loader._fetchOptions).to.eql({ credentials: 'same-origin' })
+      await loader.load()
+      expect(localFetch.callCount).to.equal(1)
+      expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'same-origin' })
     })
 
-    it('calls the function with the tag URI', function () {
+    it('calls the function with the tag URI', async function () {
       const credentials = sinon.spy((uri) => 'same-origin')
       const file = 'tremor-video/vast_inline_linear.xml'
       const uri = baseUrl + file
-      createLoader(file, {
+      const loader = createLoader(file, {
         credentials
       })
+      await loader.load()
+      expect(localFetch.callCount).to.equal(1)
       expect(credentials).to.have.been.calledWith(uri)
     })
 
-    it('throws if neither a string nor a function provided', function () {
-      expect(function () {
-        createLoader('tremor-video/vast_inline_linear.xml', {
-          credentials: true
-        })
-      }).to.throw(Error, 'Invalid credentials option: true')
+    it('falls through in array of values', async function () {
+      failOnCredentials = true
+      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
+        credentials: ['include', 'omit']
+      }, true)
+      await loader.load()
+      expect(localFetch.callCount).to.equal(2)
+      expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'include' })
+      expect(localFetch.secondCall.args[1]).to.eql({ credentials: 'omit' })
     })
   })
 })

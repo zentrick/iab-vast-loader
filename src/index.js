@@ -9,7 +9,8 @@ const RE_DATA_URI = /^data:(.*?)(;\s*base64)?,(.*)/
 const DEFAULT_OPTIONS = {
   maxDepth: 10,
   credentials: 'omit',
-  timeout: 10000
+  timeout: 10000,
+  fetch
 }
 
 export { VASTLoaderError }
@@ -27,7 +28,6 @@ export default class Loader extends EventEmitter {
       this._options = Object.assign({}, DEFAULT_OPTIONS, options)
       this._depth = 1
     }
-    this._fetchOptions = this._buildFetchOptions(uri)
   }
 
   load () {
@@ -83,20 +83,13 @@ export default class Loader extends EventEmitter {
   }
 
   _fetchUri (uri) {
-    const fetching = fetch(uri, this._fetchOptions)
+    const fetching = this._fetchWithCredentials(uri)
     const timingOut = this._createTimeouter(fetching, uri)
-    let headers
     return Promise.race([fetching, timingOut])
       .then((response) => {
         timingOut.cancel()
-        if (!response.ok) {
-          // TODO Convert response to HTTPError
-          throw new VASTLoaderError(900, response, uri)
-        }
-        headers = response.headers
-        return response.text()
+        return response
       })
-      .then((body) => ({ headers, body }))
       .catch((err) => {
         timingOut.cancel()
         if (this._depth > 1) {
@@ -104,6 +97,39 @@ export default class Loader extends EventEmitter {
         } else {
           throw err
         }
+      })
+  }
+
+  _fetchWithCredentials (uri) {
+    let { credentials } = this._options
+    if (typeof credentials === 'function') {
+      credentials = credentials(uri)
+    }
+    if (!Array.isArray(credentials)) {
+      credentials = [credentials]
+    }
+    return credentials.reduce(
+      (prev, cred) => prev.catch(() => this._tryFetch(uri, cred)),
+      Promise.reject(new Error()))
+  }
+
+  _tryFetch (uri, credentials) {
+    const { fetch } = this._options
+    let headers
+    return fetch(uri, { credentials })
+      .then((response) => {
+        if (!response.ok) {
+          // TODO Convert response to HTTPError
+          throw new VASTLoaderError(900, response, uri)
+        } else {
+          headers = response.headers
+          return response.text()
+        }
+      })
+      .then((body) => ({ headers, body }))
+      .catch((error) => {
+        this._emit('fetchError', { uri, credentials, error })
+        throw error
       })
   }
 
@@ -122,15 +148,6 @@ export default class Loader extends EventEmitter {
       }
     }
     return timingOut
-  }
-
-  _buildFetchOptions (uri) {
-    const { credentials } = this._options
-    switch (typeof credentials) {
-      case 'string': return { credentials }
-      case 'function': return { credentials: credentials(uri) }
-      default: throw new Error(`Invalid credentials option: ${credentials}`)
-    }
   }
 
   _emit (...args) {
