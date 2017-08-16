@@ -10,6 +10,7 @@ const DEFAULT_OPTIONS = {
   maxDepth: 10,
   credentials: 'omit',
   timeout: 10000,
+  noSingleAdPods: false,
   fetch
 }
 
@@ -49,7 +50,9 @@ export default class Loader extends EventEmitter {
       .then(({ headers, body }) => {
         this._emit('didFetch', { uri, headers, body })
         this._emit('willParse', { uri, body })
-        const vast = parse(body)
+        const vast = parse(body, {
+          noSingleAdPods: this._options.noSingleAdPods
+        })
         this._emit('didParse', { uri, body, vast })
         if (vast.ads.length > 0) {
           const ad = vast.ads.get(0)
