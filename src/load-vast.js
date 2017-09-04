@@ -34,7 +34,9 @@ export type VastLoadAction =
   VastLoadedAction |
   VastLoadingFailedAction
 
-type Credentials = (CredentialsType | (url: string) => CredentialsType)[]
+type CredentialsTypeOrFn = CredentialsType | (url: string) => CredentialsType
+
+type Credentials = CredentialsTypeOrFn | CredentialsTypeOrFn[]
 
 type Config = {
   url: string,
@@ -48,7 +50,7 @@ const DEFAULT_OPTIONS = {
   maxDepth: 10,
   timeout: 10000,
   retryCount: 0,
-  credentials: ['omit']
+  credentials: 'omit'
 }
 
 export const loadVast = (config: Config): Observable<VastLoadAction> =>
@@ -119,15 +121,19 @@ const getWrappers = (vast: VAST): Wrapper[] =>
   // This has however (a very minor) performance impact at runtime and it adds unnecessary complexity.
   (vast.ads.filter(ad => ad instanceof Wrapper): any)
 
+const normalizeCredentials = (credentials: Credentials): CredentialsTypeOrFn[] => Array.isArray(credentials)
+  ? credentials
+  : [credentials]
+
 // This function returns a stream with exact one event: a success or error event.
 const fetchVast = (config: LoadVastConfig): Observable<VastLoadAction> =>
-  Observable.from(config.credentials)
+  Observable.from(normalizeCredentials(config.credentials))
     .map(credentials =>
       typeof credentials === 'string'
         ? credentials
         : credentials(config.url)
     )
-    .mergeMap(credentials =>
+    .concatMap(credentials =>
       fx
         .http(config.url, {
           method: 'GET',

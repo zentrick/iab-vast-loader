@@ -90,26 +90,21 @@ describe('#loadVast()', () => {
     expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
   })
 
-  it('should load a VAST document by racing the passed credentials strategies and ignoring failed requests', () => {
-    // ----(a|)
-    // ---(a|)
-    // --(#|)
-    // ---(a|)
+  it('should load a VAST document by trying the passed credentials strategies one by one and ignoring failed requests', () => {
+    // ----(#|)
+    //     ---(a|)
+    // -------(a|)
 
     const httpStub = sinon.stub()
     const credentialStub = sinon.stub()
 
     httpStub
       .onCall(0)
-      .returns(cold('----(a|)', { a: vast.standalone.str }))
+      .returns(cold('----(#|)', null, new Error('http failed')))
 
     httpStub
       .onCall(1)
       .returns(cold('---(a|)', { a: vast.standalone.str }))
-
-    httpStub
-      .onCall(2)
-      .returns(cold('--(#|)', null, new Error('http failed')))
 
     httpStub.throws()
 
@@ -125,21 +120,20 @@ describe('#loadVast()', () => {
       url: vast.standalone.url,
       credentials: [
         'omit',
-        'same-origin',
-        credentialStub
+        credentialStub,
+        'same-origin'
       ]
     })
 
-    const expected = '---(a|)'
+    const expected = '-------(a|)'
     const values = { a: { type: 'VAST_LOADED', vast: vast.standalone.model } }
 
     scheduler.expectObservable(actual$).toBe(expected, values)
     scheduler.flush()
 
-    expect(httpStub.callCount).to.equal(3)
+    expect(httpStub.callCount).to.equal(2)
     expect(httpStub.getCall(0).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'omit' }])
-    expect(httpStub.getCall(1).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'same-origin' }])
-    expect(httpStub.getCall(2).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'include' }])
+    expect(httpStub.getCall(1).args).to.deep.equal([vast.standalone.url, { method: 'GET', credentials: 'include' }])
 
     expect(credentialStub.callCount).to.equal(1)
     expect(credentialStub.getCall(0).args).to.deep.equal([vast.standalone.url])
