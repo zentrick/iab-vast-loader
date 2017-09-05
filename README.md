@@ -4,11 +4,11 @@
 
 Loads IAB VAST tag trees using a preorder depth first strategy. The package is statically typed using [Flow](https://flow.org). [Observable streams](http://npmjs.com/package/rxjs) are used to update the consumer in time with new VAST documents.
 
-This is a major rewrite from the [earlier version](https://github.com/zentrick/iab-vast-loader/tree/v0.8.0) of this package with the main benefit that it asynchronously fetches the complete VAST document tree. The previous version of this package used [promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) and waited for the complete VAST tree to be fetched. One failing VAST document within the tree, made it fail completely. Cancellation semantics were also absent, by using Observables, we get them for free.
+This package exposes two functions: `loadVast()` and `vastToAd()`.
 
-The new implementation gives you a `loadVast()` function that returns an Observable which allows you to react on failures and offers you the choice to continue listening for subsequent VAST documents in the tree. It also delivers you a newly VAST document right away (preserving preorder depth first traversal semantics), instead of waiting for the whole tree to be fetched.
+`loadVast()` is responsible for actually loading the VAST tree, it returns a stream of VAST objects, which allows you to react on failures and offers you the choice to continue listening for subsequent VAST documents in the tree. It also delivers you a new VAST document right away (preserving preorder depth first traversal semantics), instead of waiting for the whole tree to be fetched.
 
-It also gives you a `vastToAd()` function to map the a stream of VAST objects to a stream of Ad objects (both Wrapper and InLine), also in preorder depth first order. This gives you the right abstraction on which you can easily build further upon, using the RxJS `filter()` operator to for example only return `InLine` elements.
+It also gives you a `vastToAd()` function to map the stream of VAST objects to a stream of Ad objects (both Wrapper and InLine), also in preorder depth first order. This gives you the right abstraction on which you can easily build further upon, using the RxJS `filter()` operator to for example only return `InLine` elements.
 
 ## Usage
 
@@ -100,11 +100,13 @@ An overview of its properties:
 - `timeout`: The maximum number of milliseconds to spend per HTTP request. The default is
 `10000`.
 - `retryCount`: The amount of times it will retry fetching a VAST document in case of failure. The default is `0`.
-- `credentials: Credentials`: Controls [CORS](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-behavior. You should pass an array of CredentialsType or functions that return a [CredentialsType value]((https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)), which is either `'omit'`, `'same-origin'` or `'include'`.
+- `credentials`: The credentials value defines if cookies will be sent with the request. You should pass a [`CredentialsType`](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials) string (`'omit'`, `'same-origin'` or `'include'`) or a function which calculcates the `CredentialsType` using the passed url. You can also pass an array of these values: in this case it will try the first credentials strategy, when this call fails it will go on with the next, until a strategy succeeds. If none of the credentials strategies succeed, it will result in a `VAST_LOADING_FAILED` action. Notice that passing an empty array doesn't make sense, because it will always result in a `VAST_LOADING_FAILED` action.
+
+  With Flow, we can describe this more formally:
 
   ```js
-  type Credentials = (CredentialsType | (url: string) => CredentialsType)[]
+  type Credentials = CredentialsTypeOrFn | CredentialsTypeOrFn[]
+  type CredentialsTypeOrFn = CredentialsType | (url: string) => CredentialsType
   type CredentialsType = 'omit' | 'same-origin' | 'include'
   ```
 
@@ -119,13 +121,11 @@ behavior. You should pass an array of CredentialsType or functions that return a
   })
   ```
 
-  You can also pass multiple CORS strategies with the array. The implementation will race the different strategies in parallel, and will use the first request that succeeds. If none of the CORS strategies succeed, it will result in a `VAST_LOADING_FAILED` action. Notice that passing an empty array doesn't make sense, because it will make your request to fail always.
-
-  The default is `['omit']`.
+  The default is `'omit'`.
 
 #### Output
 
-The output of loadVast is a stream of VastLoadAction objects:
+The output of loadVast is a stream of `VastLoadAction` objects:
 
 ```js
 type VastLoadedAction = {
