@@ -285,7 +285,7 @@ describe('#loadVast()', () => {
       const expected = '--b----(de|)'
       const values = {
         b: { type: 'VAST_LOADED', vast: vast.b.model },
-        d: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('301'), wrapper: vast.b.model.ads[0] },
+        d: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('301'), wrapper: vast.b.model.adBuffet.toArray()[0] },
         e: { type: 'VAST_LOADED', vast: vast.e.model }
       }
 
@@ -356,8 +356,8 @@ describe('#loadVast()', () => {
     const values = {
       a: { type: 'VAST_LOADED', vast: vast.a.model },
       b: { type: 'VAST_LOADED', vast: vast.b.model },
-      d: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.ads[0], error: new VASTLoaderError('302') },
-      e: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.ads[2], error: new VASTLoaderError('302') },
+      d: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.adBuffet.toArray()[0], error: new VASTLoaderError('302') },
+      e: { type: 'VAST_LOADING_FAILED', wrapper: vast.b.model.adBuffet.toArray()[2], error: new VASTLoaderError('302') },
       c: { type: 'VAST_LOADED', vast: vast.c.model }
     }
 

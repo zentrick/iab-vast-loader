@@ -21,20 +21,20 @@ export const buildVast = () => {
   const standalone = buildVastVars('vast-standalone.xml')
 
   // Setup the Wrapper => VAST links.
-  b.model.parent = a.model.ads[1]
-  c.model.parent = a.model.ads[3]
-  d.model.parent = b.model.ads[0]
-  e.model.parent = b.model.ads[2]
+  b.model.parent = a.model.adBuffet.toArray()[1]
+  c.model.parent = a.model.adBuffet.toArray()[3]
+  d.model.parent = b.model.adBuffet.toArray()[0]
+  e.model.parent = b.model.adBuffet.toArray()[2]
 
   return { a, b, c, d, e, standalone }
 }
 
 export const buildAd = (vast) => {
-  const [p, q, r, s, t] = vast.a.model.ads
-  const [u, v, w] = vast.b.model.ads
-  const [x] = vast.c.model.ads
-  const [y] = vast.d.model.ads
-  const [z] = vast.e.model.ads
+  const [p, q, r, s, t] = vast.a.model.adBuffet.toArray()
+  const [u, v, w] = vast.b.model.adBuffet.toArray()
+  const [x] = vast.c.model.adBuffet.toArray()
+  const [y] = vast.d.model.adBuffet.toArray()
+  const [z] = vast.e.model.adBuffet.toArray()
 
   return { p, q, r, s, t, u, v, w, x, y, z }
 }

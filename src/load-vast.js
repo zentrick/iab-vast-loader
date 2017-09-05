@@ -119,7 +119,7 @@ const getWrappers = (vast: VAST): Wrapper[] =>
   // We cast to any here, because Flow is pessimistic and doesn't allow downcasting.
   // Another approach could be to add an additional map, and perform an invariant check.
   // This has however (a very minor) performance impact at runtime and it adds unnecessary complexity.
-  (vast.ads.filter(ad => ad instanceof Wrapper): any)
+  (vast.adBuffet.toArray().filter(ad => ad instanceof Wrapper): any)
 
 const normalizeCredentials = (credentials: Credentials): CredentialsTypeOrFn[] => Array.isArray(credentials)
   ? credentials

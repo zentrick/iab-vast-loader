@@ -63,9 +63,9 @@ describe('#vastToAd()', () => {
     const input$ = cold('--a----b--d-----e------(c|)', {
       a: { type: 'VAST_LOADED', vast: vast.a.model },
       b: { type: 'VAST_LOADED', vast: vast.b.model },
-      d: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.b.model.ads[0] },
+      d: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.b.model.adBuffet.toArray()[0] },
       e: { type: 'VAST_LOADED', vast: vast.e.model },
-      c: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.a.model.ads[3] }
+      c: { type: 'VAST_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.a.model.adBuffet.toArray()[3] }
     })
 
     const actual$ = vastToAd(input$)
@@ -74,13 +74,13 @@ describe('#vastToAd()', () => {
       p: { type: 'AD_LOADED', ad: ad.p },
       q: { type: 'AD_LOADED', ad: ad.q },
       u: { type: 'AD_LOADED', ad: ad.u },
-      y: { type: 'AD_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.b.model.ads[0] },
+      y: { type: 'AD_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.b.model.adBuffet.toArray()[0] },
       v: { type: 'AD_LOADED', ad: ad.v },
       w: { type: 'AD_LOADED', ad: ad.w },
       z: { type: 'AD_LOADED', ad: ad.z },
       r: { type: 'AD_LOADED', ad: ad.r },
       s: { type: 'AD_LOADED', ad: ad.s },
-      x: { type: 'AD_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.a.model.ads[3] },
+      x: { type: 'AD_LOADING_FAILED', error: new VASTLoaderError('900'), wrapper: vast.a.model.adBuffet.toArray()[3] },
       t: { type: 'AD_LOADED', ad: ad.t }
     }
     scheduler.expectObservable(actual$).toBe(expected, values)

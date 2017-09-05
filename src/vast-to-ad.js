@@ -53,17 +53,18 @@ export const vastToAd = (vast$: Observable<VastLoadAction>): Observable<AdLoadAc
     })
 
 const getWrapperIndex = (wrapper: Wrapper): number =>
-  wrapper.parent.ads.indexOf(wrapper)
+  wrapper.parent.adBuffet.toArray().indexOf(wrapper)
 
 const walkAdsUntilNextWrapper = (vast: VAST, fromIndex: number): Ad[] => {
-  const adsFromIndex = vast.ads.slice(fromIndex)
+  const adBuffet = vast.adBuffet.toArray()
+  const adsFromIndex = adBuffet.slice(fromIndex)
   const toIndex = adsFromIndex.findIndex(ad => ad instanceof Wrapper)
 
   const ads = toIndex === -1
     // All the inLines until the end of the array.
-    ? vast.ads.slice(fromIndex)
+    ? adBuffet.slice(fromIndex)
     // An array of inLine ads, ending with one wrapper ad.
-    : vast.ads.slice(fromIndex, fromIndex + toIndex + 1)
+    : adBuffet.slice(fromIndex, fromIndex + toIndex + 1)
 
   if (toIndex === -1) {
     // This VAST file doesn't have Wrappers anymore so we can continue walking the tree upwards.
