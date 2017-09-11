@@ -1,26 +1,10 @@
-import codeToMessage from './error-codes'
+import VASTError from 'iab-vast-error'
 
-export default class VASTLoaderError extends Error {
+export default class VASTLoaderError extends VASTError {
   constructor (code, cause = null, uri = null) {
-    super(codeToMessage[code])
-    this._code = code
-    this._cause = cause
-    this._uri = uri
-  }
-
-  get code () {
-    return this._code
-  }
-
-  get cause () {
-    return this._cause
-  }
-
-  get uri () {
-    return this._uri
-  }
-
-  get $type () {
-    return 'VASTLoaderError'
+    super(code)
+    this.$type = 'VASTLoaderError'
+    this.cause = cause
+    this.uri = uri
   }
 }

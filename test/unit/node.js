@@ -24,7 +24,7 @@ describe('VASTLoaderError', function () {
   describe('#message', function () {
     it('resolves from the code', function () {
       const error = new VASTLoaderError(301)
-      expect(error.message).to.equal('Timeout.')
+      expect(error.message).to.equal('VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
     })
   })
 
@@ -141,7 +141,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 303, 'No Ads VAST response after one or more Wrappers.')
+      expectLoaderError(error, 303, 'VAST error 303: No ads VAST response after one or more Wrappers. Also includes number of empty VAST responses from fallback.')
     })
 
     it('throws VAST 301 on invalid InLine inside Wrapper', async function () {
@@ -152,7 +152,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 301, 'Timeout.')
+      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
     })
 
     it('throws on HTTP errors', async function () {
@@ -163,7 +163,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 900, 'Undefined error.', {status: 404, statusText: 'Not Found'})
+      expectLoaderError(error, 900, 'VAST error 900: Undefined error.', {status: 404, statusText: 'Not Found'})
     })
   })
 
@@ -221,7 +221,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 302, 'Wrapper limit reached.')
+      expectLoaderError(error, 302, 'VAST error 302: Wrapper limit reached, as defined by the video player. Too many Wrapper responses have been received with no InLine response.')
     })
   })
 
@@ -237,7 +237,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 301, 'Timeout.')
+      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
     })
   })
 
