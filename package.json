@@ -1,6 +1,6 @@
 {
   "name": "iab-vast-loader",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
   "main": "index.js",
   "jsnext:main": "src/index.js",
