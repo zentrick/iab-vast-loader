@@ -163,7 +163,7 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 900, 'VAST error 900: Undefined error.', {status: 404, statusText: 'Not Found'})
+      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.', {status: 404, statusText: 'Not Found'})
     })
   })
 

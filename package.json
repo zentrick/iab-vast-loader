@@ -26,6 +26,7 @@
   "repository": "zentrick/iab-vast-loader",
   "bugs": "https://github.com/zentrick/iab-vast-loader/issues",
   "dependencies": {
+    "es6-error": "^4.0.2",
     "eventemitter3": "^2.0.0",
     "iab-vast-error": "^0.2.0",
     "iab-vast-model": "^0.4.0",

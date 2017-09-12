@@ -2,7 +2,8 @@ import EventEmitter from 'eventemitter3'
 import fetch from 'isomorphic-fetch'
 import parse from 'iab-vast-parser'
 import { Wrapper } from 'iab-vast-model'
-import VASTLoaderError from './error'
+import VASTLoaderError from './loader-error'
+import HTTPError from './http-error'
 import atob from './atob'
 
 const RE_DATA_URI = /^data:(.*?)(;\s*base64)?,(.*)/
@@ -14,7 +15,7 @@ const DEFAULT_OPTIONS = {
   fetch
 }
 
-export { VASTLoaderError }
+export { VASTLoaderError, HTTPError }
 
 export default class Loader extends EventEmitter {
   constructor (uri, options, parent) {
@@ -122,8 +123,8 @@ export default class Loader extends EventEmitter {
     return fetch(uri, { credentials })
       .then((response) => {
         if (!response.ok) {
-          // TODO Convert response to HTTPError
-          throw new VASTLoaderError(900, response, uri)
+          const httpError = new HTTPError(response.status, response.statusText)
+          throw new VASTLoaderError(301, httpError, uri)
         } else {
           headers = response.headers
           return response.text()
