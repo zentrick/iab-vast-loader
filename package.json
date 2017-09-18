@@ -63,7 +63,7 @@
     "sinon": "^3.2.1",
     "sinon-chai": "^2.8.0",
     "standard": "^10.0.3",
-    "yargs": "^8.0.2"
+    "yargs": "^9.0.1"
   },
   "standard": {
     "globals": [
