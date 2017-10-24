@@ -29,7 +29,7 @@
     "es6-error": "^4.0.2",
     "eventemitter3": "^2.0.0",
     "iab-vast-error": "^0.2.0",
-    "iab-vast-model": "^0.4.0",
+    "iab-vast-model": "^0.5.0",
     "iab-vast-parser": "^0.7.0",
     "isomorphic-fetch": "^2.2.1"
   },
