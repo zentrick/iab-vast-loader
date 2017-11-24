@@ -93,17 +93,22 @@ describe('VASTLoader', function () {
 
   describe('#load()', function () {
     it('loads the InLine', async function () {
-      const loader = createLoader('tremor-video/vast_inline_linear.xml')
+      const uri = 'tremor-video/vast_inline_linear.xml'
+      const loader = createLoader(uri)
       const chain = await loader.load()
       expect(chain).to.be.an.instanceof(Array)
       expect(chain.length).to.equal(1)
+      expect(chain[0].uri).to.equal(baseUrl + uri)
     })
 
     it('loads the Wrapper', async function () {
-      const loader = createLoader('tremor-video/vast_wrapper_linear_1.xml')
+      const uri = 'tremor-video/vast_wrapper_linear_1.xml'
+      const loader = createLoader(uri)
       const chain = await loader.load()
       expect(chain).to.be.an.instanceof(Array)
       expect(chain.length).to.equal(2)
+      expect(chain[0].uri).to.equal(baseUrl + uri)
+      expect(chain[1].uri).to.equal('http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
     })
 
     it('loads the InLine as Base64', async function () {
