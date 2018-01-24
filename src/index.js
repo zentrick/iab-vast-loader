@@ -62,7 +62,9 @@ export default class Loader extends EventEmitter {
             return this._loadWrapped(ad.vastAdTagURI, vast)
           }
         } else if (this._depth > 1) {
-          throw new VASTLoaderError(303, null, uri)
+          let err = new VASTLoaderError(303, null, uri)
+          err.data = uri
+          throw err
         }
         return [vast]
       })
