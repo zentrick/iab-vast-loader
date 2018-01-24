@@ -63,7 +63,7 @@ export default class Loader extends EventEmitter {
           }
         } else if (this._depth > 1) {
           let err = new VASTLoaderError(303, null, uri)
-          err.data = uri
+          err.data = { uri: uri }
           throw err
         }
         return [vast]
