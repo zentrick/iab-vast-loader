@@ -55,6 +55,7 @@
     "gulp-standard": "^10.1.1",
     "in-publish": "^2.0.0",
     "isparta": "^4.0.0",
+    "mocha-junit-reporter": "^1.17.0",
     "run-sequence": "^2.1.0",
     "sinon": "^4.3.0",
     "sinon-chai": "^2.8.0",
