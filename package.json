@@ -62,7 +62,7 @@
     "run-sequence": "^2.1.0",
     "sinon": "^3.2.1",
     "sinon-chai": "^2.8.0",
-    "standard": "^10.0.3",
+    "standard": "^11.0.0",
     "yargs": "^8.0.2"
   },
   "standard": {
