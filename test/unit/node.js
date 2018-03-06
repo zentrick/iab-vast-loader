@@ -1,6 +1,6 @@
 import express from 'express'
 import fetch from 'isomorphic-fetch'
-import fsp from 'fs-promise'
+import fs from 'fs-extra'
 import path from 'path'
 import { default as VASTLoader, VASTLoaderError } from '../../src/'
 
@@ -113,7 +113,7 @@ describe('VASTLoader', function () {
 
     it('loads the InLine as Base64', async function () {
       const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
-      const base64 = (await fsp.readFile(file)).toString('base64')
+      const base64 = (await fs.readFile(file)).toString('base64')
       const dataUri = 'data:text/xml;base64,' + base64
       const loader = new VASTLoader(dataUri)
       const chain = await loader.load()
@@ -123,7 +123,7 @@ describe('VASTLoader', function () {
 
     it('loads the InLine as XML', async function () {
       const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
-      const xml = (await fsp.readFile(file, 'utf8')).replace(/\r?\n/g, '')
+      const xml = (await fs.readFile(file, 'utf8')).replace(/\r?\n/g, '')
       const dataUri = 'data:text/xml,' + xml
       const loader = new VASTLoader(dataUri)
       const chain = await loader.load()

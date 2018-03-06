@@ -1,7 +1,0 @@
-{
-  "presets": [["env", {"targets": {"node": 4}}]],
-  "plugins": [
-    ["transform-builtin-extend", {"globals": ["Error"]}],
-    "transform-runtime"
-  ]
-}
