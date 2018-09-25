@@ -2,7 +2,11 @@ const express = require('express')
 const fetch = require('node-fetch')
 const fs = require('fs-extra')
 const path = require('path')
-const { VASTLoader, VASTLoaderError } = require('../../node')
+const { VASTLoader } = require('../../lib/loader')
+const { VASTLoaderError } = require('../../lib/loader-error')
+const { atob } = require('../../lib/node/atob')
+
+VASTLoader.atob = atob
 
 const expectLoaderError = (error, code, message, cause) => {
   expect(error).to.be.an.instanceof(VASTLoaderError)

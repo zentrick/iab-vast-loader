@@ -20,7 +20,7 @@
   "scripts": {
     "test": "yarn run lint && yarn run cover",
     "lint": "standard '*.js' '{lib,test}/**/*.js'",
-    "cover": "cross-env NODE_ENV=test nyc mocha 'test/lib/setup.js' 'test/unit/**/*.js'",
+    "cover": "nyc mocha --require '@babel/register' --require '@babel/polyfill' 'test/lib/setup.js' 'test/unit/**/*.js'",
     "ci": "yarn run lint && MOCHA_FILE=$CIRCLE_TEST_REPORTS/junit.xml yarn run cover --reporter mocha-junit-reporter && nyc report --reporter=text-lcov | coveralls",
     "format": "prettier-standard '*.js' '{lib,test}/**/*.js'"
   },
@@ -37,10 +37,13 @@
     "unfetch": "^4.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.2",
-    "cross-env": "^5.2.0",
     "dirty-chai": "^2.0.1",
     "express": "^4.16.2",
     "fs-extra": "^7.0.0",
@@ -75,9 +78,7 @@
     "branches": 90,
     "include": [
       "lib/**/*.js"
-    ],
-    "sourceMap": false,
-    "instrument": false
+    ]
   },
   "lint-staged": {
     "linters": {
