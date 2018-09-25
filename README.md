@@ -1,13 +1,13 @@
 # iab-vast-loader
 
-[![npm](https://img.shields.io/npm/v/iab-vast-loader.svg)](https://www.npmjs.com/package/iab-vast-loader) [![Dependencies](https://img.shields.io/david/zentrick/iab-vast-loader.svg)](https://david-dm.org/zentrick/iab-vast-loader) [![Build Status](https://img.shields.io/circleci/project/github/zentrick/iab-vast-loader/master.svg)](https://circleci.com/gh/zentrick/iab-vast-loader) [![Coverage Status](https://img.shields.io/coveralls/zentrick/iab-vast-loader/master.svg)](https://coveralls.io/r/zentrick/iab-vast-loader) [![JavaScript Standard Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+[![npm](https://img.shields.io/npm/v/iab-vast-loader.svg)](https://www.npmjs.com/package/iab-vast-loader) [![Dependencies](https://img.shields.io/david/zentrick/iab-vast-loader.svg)](https://david-dm.org/zentrick/iab-vast-loader) [![Build Status](https://img.shields.io/circleci/project/github/zentrick/iab-vast-loader/master.svg)](https://circleci.com/gh/zentrick/iab-vast-loader) [![Coverage Status](https://img.shields.io/coveralls/zentrick/iab-vast-loader/master.svg)](https://coveralls.io/r/zentrick/iab-vast-loader) [![JavaScript Standard Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](https://standardjs.com/)
 
 Loads and parses IAB VAST tags, resolving wrapped tags along the way.
 
 ## Usage
 
 ```js
-import VASTLoader from 'iab-vast-loader'
+import { VASTLoader } from 'iab-vast-loader'
 
 const tagUrl = 'https://example.com/vast.xml'
 
@@ -23,6 +23,9 @@ loader.load()
     console.error('Error loading tag:', err)
   })
 ```
+
+This should work in both Node.js version 8 and above as well as in the browser.
+However, in the browser, you'll probably want to use a bundler first.
 
 ## API
 
@@ -41,11 +44,11 @@ provided by [iab-vast-model](https://www.npmjs.com/package/iab-vast-model).
 
 ## Error Handling
 
-In addition to the default export `VASTLoader`, the main module also exports
-the `VASTLoaderError` class, which maps errors to the VAST specification:
+In addition to `VASTLoader`, the main module also exports the `VASTLoaderError`
+class, which maps errors to the VAST specification:
 
 ```js
-import { default as VASTLoader, VASTLoaderError } from 'iab-vast-loader'
+import { VASTLoader, VASTLoaderError } from 'iab-vast-loader'
 
 const loader = new VASTLoader(tagUrl)
 

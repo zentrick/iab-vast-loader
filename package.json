@@ -2,60 +2,57 @@
   "name": "iab-vast-loader",
   "version": "1.0.0",
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
-  "main": "index.js",
-  "jsnext:main": "src/index.js",
+  "main": "node.js",
+  "jsnext:main": "browser.js",
   "author": "Zentrick nv (https://www.zentrick.com/)",
   "contributors": [
     "Tim De Pauw <tim.depauw@zentrick.com>"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   },
   "license": "MIT",
   "files": [
-    "src/",
     "lib/",
-    "index.js"
+    "node.js",
+    "browser.js"
   ],
   "scripts": {
-    "build": "rimraf lib && babel src -d lib",
-    "prepublish": "in-publish && yarn run build || not-in-publish",
-    "lint": "standard '{src,test}/**/*.js'",
-    "test:cover": "cross-env NODE_ENV=test nyc mocha --require babel-polyfill --require babel-register 'test/lib/setup.js' 'test/unit/**/*.js'",
-    "test": "yarn run lint && yarn run test:cover",
-    "ci": "yarn run lint && MOCHA_FILE=$CIRCLE_TEST_REPORTS/junit.xml yarn run test:cover --reporter mocha-junit-reporter && nyc report --reporter=text-lcov | coveralls"
+    "test": "yarn run lint && yarn run cover",
+    "lint": "standard '*.js' '{lib,test}/**/*.js'",
+    "cover": "cross-env NODE_ENV=test nyc mocha 'test/lib/setup.js' 'test/unit/**/*.js'",
+    "ci": "yarn run lint && MOCHA_FILE=$CIRCLE_TEST_REPORTS/junit.xml yarn run cover --reporter mocha-junit-reporter && nyc report --reporter=text-lcov | coveralls",
+    "format": "prettier-standard '*.js' '{lib,test}/**/*.js'"
   },
   "repository": "zentrick/iab-vast-loader",
   "bugs": "https://github.com/zentrick/iab-vast-loader/issues",
   "dependencies": {
     "es6-error": "^4.0.2",
-    "eventemitter3": "^2.0.0",
+    "esm": "^3.0.84",
+    "eventemitter3": "^3.1.0",
     "iab-vast-error": "^0.2.0",
     "iab-vast-model": "^1.0.0",
-    "iab-vast-parser": "^1.0.0",
-    "isomorphic-fetch": "^2.2.1"
+    "iab-vast-parser": "^1.0.2",
+    "node-fetch": "^2.2.0",
+    "unfetch": "^4.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-istanbul": "^4.1.5",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-register": "^6.26.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
-    "coveralls": "^3.0.0",
-    "cross-env": "^5.1.3",
+    "coveralls": "^3.0.2",
+    "cross-env": "^5.2.0",
     "dirty-chai": "^2.0.1",
     "express": "^4.16.2",
-    "fs-extra": "^5.0.0",
-    "in-publish": "^2.0.0",
-    "mocha": "^5.0.2",
-    "mocha-junit-reporter": "^1.17.0",
-    "nyc": "^11.4.1",
-    "rimraf": "^2.6.2",
-    "sinon": "^4.4.2",
-    "sinon-chai": "^3.0.0",
-    "standard": "^11.0.0"
+    "fs-extra": "^7.0.0",
+    "husky": "^1.0.0-rc.15",
+    "lint-staged": "^7.3.0",
+    "mocha": "^5.2.0",
+    "mocha-junit-reporter": "^1.18.0",
+    "nyc": "^13.0.1",
+    "prettier-standard": "^8.0.1",
+    "sinon": "^6.3.4",
+    "sinon-chai": "^3.2.0",
+    "standard": "^10.0.0"
   },
   "standard": {
     "globals": [
@@ -67,22 +64,8 @@
       "afterEach",
       "expect",
       "sinon",
-      "fetch",
-      "XMLHttpRequest",
-      "Headers"
+      "fetch"
     ]
-  },
-  "babel": {
-    "presets": [
-      "env"
-    ],
-    "env": {
-      "test": {
-        "plugins": [
-          "istanbul"
-        ]
-      }
-    }
   },
   "nyc": {
     "check-coverage": true,
@@ -91,12 +74,22 @@
     "functions": 100,
     "branches": 90,
     "include": [
-      "src/**/*.js"
-    ],
-    "require": [
-      "babel-register"
+      "lib/**/*.js"
     ],
     "sourceMap": false,
     "instrument": false
+  },
+  "lint-staged": {
+    "linters": {
+      "*.js": [
+        "prettier-standard",
+        "git add"
+      ]
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

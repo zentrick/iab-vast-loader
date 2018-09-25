@@ -1,8 +1,8 @@
-import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
-import dirtyChai from 'dirty-chai'
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+const sinon = require('sinon')
+const sinonChai = require('sinon-chai')
+const dirtyChai = require('dirty-chai')
 
 chai.use(chaiAsPromised)
 chai.use(sinonChai)

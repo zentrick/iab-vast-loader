@@ -1,8 +1,8 @@
-import express from 'express'
-import fetch from 'isomorphic-fetch'
-import fs from 'fs-extra'
-import path from 'path'
-import { default as VASTLoader, VASTLoaderError } from '../../src/'
+const express = require('express')
+const fetch = require('node-fetch')
+const fs = require('fs-extra')
+const path = require('path')
+const { VASTLoader, VASTLoaderError } = require('../../node')
 
 const expectLoaderError = (error, code, message, cause) => {
   expect(error).to.be.an.instanceof(VASTLoaderError)
@@ -24,7 +24,9 @@ describe('VASTLoaderError', function () {
   describe('#message', function () {
     it('resolves from the code', function () {
       const error = new VASTLoaderError(301)
-      expect(error.message).to.equal('VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
+      expect(error.message).to.equal(
+        'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.'
+      )
     })
   })
 
@@ -47,7 +49,8 @@ describe('VASTLoaderError', function () {
 describe('VASTLoader', function () {
   const fixturesPath = path.resolve(__dirname, '../fixtures')
   const proxyPaths = {
-    'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml': 'tremor-video/vast_inline_linear.xml',
+    'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml':
+      'tremor-video/vast_inline_linear.xml',
     'http://example.com/no-ads.xml': 'no-ads.xml',
     'http://example.com/invalid-ads.xml': 'invalid-ads.xml'
   }
@@ -58,8 +61,10 @@ describe('VASTLoader', function () {
   let localFetch
   let failOnCredentials
 
-  const createLoader = (file, options) =>
-    new VASTLoader(baseUrl + file, Object.assign({}, options, { fetch: localFetch }))
+  const createLoader = (file, options) => {
+    VASTLoader.fetch = localFetch
+    return new VASTLoader(baseUrl + file, options)
+  }
 
   before(function (cb) {
     const app = express()
@@ -108,11 +113,16 @@ describe('VASTLoader', function () {
       expect(chain).to.be.an.instanceof(Array)
       expect(chain.length).to.equal(2)
       expect(chain[0].uri).to.equal(baseUrl + uri)
-      expect(chain[1].uri).to.equal('http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml')
+      expect(chain[1].uri).to.equal(
+        'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
+      )
     })
 
     it('loads the InLine as Base64', async function () {
-      const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
+      const file = path.join(
+        fixturesPath,
+        'tremor-video/vast_inline_linear.xml'
+      )
       const base64 = (await fs.readFile(file)).toString('base64')
       const dataUri = 'data:text/xml;base64,' + base64
       const loader = new VASTLoader(dataUri)
@@ -122,7 +132,10 @@ describe('VASTLoader', function () {
     })
 
     it('loads the InLine as XML', async function () {
-      const file = path.join(fixturesPath, 'tremor-video/vast_inline_linear.xml')
+      const file = path.join(
+        fixturesPath,
+        'tremor-video/vast_inline_linear.xml'
+      )
       const xml = (await fs.readFile(file, 'utf8')).replace(/\r?\n/g, '')
       const dataUri = 'data:text/xml,' + xml
       const loader = new VASTLoader(dataUri)
@@ -146,7 +159,11 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 303, 'VAST error 303: No ads VAST response after one or more Wrappers. Also includes number of empty VAST responses from fallback.')
+      expectLoaderError(
+        error,
+        303,
+        'VAST error 303: No ads VAST response after one or more Wrappers. Also includes number of empty VAST responses from fallback.'
+      )
     })
 
     it('throws VAST 301 on invalid InLine inside Wrapper', async function () {
@@ -157,7 +174,11 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
+      expectLoaderError(
+        error,
+        301,
+        'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.'
+      )
     })
 
     it('throws on HTTP errors', async function () {
@@ -168,7 +189,12 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.', {status: 404, statusText: 'Not Found'})
+      expectLoaderError(
+        error,
+        301,
+        'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.',
+        { status: 404, statusText: 'Not Found' }
+      )
     })
   })
 
@@ -226,7 +252,11 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 302, 'VAST error 302: Wrapper limit reached, as defined by the video player. Too many Wrapper responses have been received with no InLine response.')
+      expectLoaderError(
+        error,
+        302,
+        'VAST error 302: Wrapper limit reached, as defined by the video player. Too many Wrapper responses have been received with no InLine response.'
+      )
     })
   })
 
@@ -242,7 +272,11 @@ describe('VASTLoader', function () {
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 301, 'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.')
+      expectLoaderError(
+        error,
+        301,
+        'VAST error 301: Timeout of VAST URI provided in Wrapper element, or of VAST URI provided in a subsequent Wrapper element.'
+      )
     })
   })
 
@@ -265,15 +299,17 @@ describe('VASTLoader', function () {
 
     it('overrides with a function value', async function () {
       const loader = createLoader('tremor-video/vast_inline_linear.xml', {
-        credentials: (uri) => 'same-origin'
+        credentials: uri => 'same-origin'
       })
       await loader.load()
       expect(localFetch.callCount).to.equal(1)
-      expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'same-origin' })
+      expect(localFetch.firstCall.args[1]).to.eql({
+        credentials: 'same-origin'
+      })
     })
 
     it('calls the function with the tag URI', async function () {
-      const credentials = sinon.spy((uri) => 'same-origin')
+      const credentials = sinon.spy(uri => 'same-origin')
       const file = 'tremor-video/vast_inline_linear.xml'
       const uri = baseUrl + file
       const loader = createLoader(file, {
@@ -286,9 +322,13 @@ describe('VASTLoader', function () {
 
     it('falls through in array of values', async function () {
       failOnCredentials = true
-      const loader = createLoader('tremor-video/vast_inline_linear.xml', {
-        credentials: ['include', 'omit']
-      }, true)
+      const loader = createLoader(
+        'tremor-video/vast_inline_linear.xml',
+        {
+          credentials: ['include', 'omit']
+        },
+        true
+      )
       await loader.load()
       expect(localFetch.callCount).to.equal(2)
       expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'include' })
