@@ -633,23 +633,28 @@
   dependencies:
     type-detect "4.0.8"
 
-"@sinonjs/formatio@3.0.0", "@sinonjs/formatio@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@sinonjs/formatio/-/formatio-3.0.0.tgz#9d282d81030a03a03fa0c5ce31fd8786a4da311a"
+"@sinonjs/commons@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.3.0.tgz#50a2754016b6f30a994ceda6d9a0a8c36adda849"
+  integrity sha512-j4ZwhaHmwsCb4DlDOIWnI5YyKDNMoNThsmwEpfHx6a1EpsGZ9qYLxP++LMlmBRjtGptGHFsGItJ768snllFWpA==
   dependencies:
-    "@sinonjs/samsam" "2.1.0"
+    type-detect "4.0.8"
 
-"@sinonjs/samsam@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@sinonjs/samsam/-/samsam-2.1.0.tgz#b8b8f5b819605bd63601a6ede459156880f38ea3"
+"@sinonjs/formatio@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@sinonjs/formatio/-/formatio-3.1.0.tgz#6ac9d1eb1821984d84c4996726e45d1646d8cce5"
+  integrity sha512-ZAR2bPHOl4Xg6eklUGpsdiIJ4+J1SNag1DHHrG/73Uz/nVwXqjgUtRPLoS+aVyieN9cSbc0E4LsU984tWcDyNg==
   dependencies:
-    array-from "^2.1.1"
+    "@sinonjs/samsam" "^2 || ^3"
 
-"@sinonjs/samsam@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@sinonjs/samsam/-/samsam-2.1.1.tgz#f352621c24c9e9ab2ed293a7655e8d46bfd64c16"
+"@sinonjs/samsam@^2 || ^3", "@sinonjs/samsam@^3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@sinonjs/samsam/-/samsam-3.0.2.tgz#304fb33bd5585a0b2df8a4c801fcb47fa84d8e43"
+  integrity sha512-m08g4CS3J6lwRQk1pj1EO+KEVWbrbXsmi9Pw0ySmrIbcVxVaedoFgLvFsV8wHLwh01EpROVz3KvVcD1Jmks9FQ==
   dependencies:
+    "@sinonjs/commons" "^1.0.2"
     array-from "^2.1.1"
+    lodash.get "^4.4.2"
 
 abbrev@1:
   version "1.1.1"
@@ -2716,9 +2721,10 @@ jsx-ast-utils@^1.3.4:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/jsx-ast-utils/-/jsx-ast-utils-1.4.1.tgz#3867213e8dd79bf1e8f2300c0cfc1efb182c0df1"
 
-just-extend@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/just-extend/-/just-extend-3.0.0.tgz#cee004031eaabf6406da03a7b84e4fe9d78ef288"
+just-extend@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/just-extend/-/just-extend-4.0.2.tgz#f3f47f7dfca0f989c55410a7ebc8854b07108afc"
+  integrity sha512-FrLwOgm+iXrPV+5zDU6Jqu4gCRXbWEQg2O3SKONsWE4w7AXFRkryS53bpWdaL9cNol+AmR3AEYz6kn+o0fCPnw==
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
@@ -2921,9 +2927,10 @@ lolex@^2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/lolex/-/lolex-2.3.2.tgz#85f9450425103bf9e7a60668ea25dc43274ca807"
 
-lolex@^2.7.4:
-  version "2.7.5"
-  resolved "https://registry.yarnpkg.com/lolex/-/lolex-2.7.5.tgz#113001d56bfc7e02d56e36291cc5c413d1aa0733"
+lolex@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/lolex/-/lolex-3.0.0.tgz#f04ee1a8aa13f60f1abd7b0e8f4213ec72ec193e"
+  integrity sha512-hcnW80h3j2lbUfFdMArd5UPA/vxZJ+G8vobd+wg3nVEQA0EigStbYcrG030FJxL6xiDDPEkoMatV9xIh5OecQQ==
 
 loose-envify@^1.0.0:
   version "1.3.1"
@@ -3159,12 +3166,13 @@ next-tick@1:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
 
-nise@^1.4.5:
-  version "1.4.5"
-  resolved "https://registry.yarnpkg.com/nise/-/nise-1.4.5.tgz#979a97a19c48d627bb53703726ae8d53ce8d4b3e"
+nise@^1.4.8:
+  version "1.4.8"
+  resolved "https://registry.yarnpkg.com/nise/-/nise-1.4.8.tgz#ce91c31e86cf9b2c4cac49d7fcd7f56779bfd6b0"
+  integrity sha512-kGASVhuL4tlAV0tvA34yJYZIVihrUt/5bDwpp4tTluigxUr2bBlJeDXmivb6NuEdFkqvdv/Ybb9dm16PSKUhtw==
   dependencies:
-    "@sinonjs/formatio" "3.0.0"
-    just-extend "^3.0.0"
+    "@sinonjs/formatio" "^3.1.0"
+    just-extend "^4.0.2"
     lolex "^2.3.2"
     path-to-regexp "^1.7.0"
     text-encoding "^0.6.4"
@@ -4033,19 +4041,18 @@ sinon-chai@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/sinon-chai/-/sinon-chai-3.2.0.tgz#ed995e13a8a3cfccec18f218d9b767edc47e0715"
 
-sinon@^6.3.4:
-  version "6.3.4"
-  resolved "https://registry.yarnpkg.com/sinon/-/sinon-6.3.4.tgz#6f076d7ddcf381af6c16468ac83d30333a756ec8"
+sinon@^7.2.3:
+  version "7.2.3"
+  resolved "https://registry.yarnpkg.com/sinon/-/sinon-7.2.3.tgz#f8bfd956df32ddf592f8c102fd46982366412d8e"
+  integrity sha512-i6j7sqcLEqTYqUcMV327waI745VASvYuSuQMCjbAwlpAeuCgKZ3LtrjDxAbu+GjNQR0FEDpywtwGCIh8GicNyg==
   dependencies:
-    "@sinonjs/commons" "^1.0.2"
-    "@sinonjs/formatio" "^3.0.0"
-    "@sinonjs/samsam" "^2.1.1"
+    "@sinonjs/commons" "^1.3.0"
+    "@sinonjs/formatio" "^3.1.0"
+    "@sinonjs/samsam" "^3.0.2"
     diff "^3.5.0"
-    lodash.get "^4.4.2"
-    lolex "^2.7.4"
-    nise "^1.4.5"
+    lolex "^3.0.0"
+    nise "^1.4.8"
     supports-color "^5.5.0"
-    type-detect "^4.0.8"
 
 slash@^2.0.0:
   version "2.0.0"
@@ -4409,7 +4416,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-detect@4.0.8, type-detect@^4.0.0, type-detect@^4.0.8:
+type-detect@4.0.8, type-detect@^4.0.0:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
 
