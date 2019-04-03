@@ -11,8 +11,11 @@ VASTLoader.atob = atob
 const EMPTY_VAST_2 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="2.0"/>`
 const EMPTY_VAST_3 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"/>`
 
-const mockFetch = body =>
-  new Promise((resolve, reject) => resolve({ ok: true, text: () => body }))
+const mockFetch = body => () =>
+  Promise.resolve({
+    ok: true,
+    text: () => Promise.resolve(body)
+  })
 
 const expectLoaderError = (error, code, message, cause) => {
   expect(error).to.be.an.instanceof(VASTLoaderError)
@@ -349,10 +352,10 @@ describe('VASTLoader', function () {
   describe('fetch option', function () {
     it('overwrites fetch per instance', async function () {
       const loader1 = createLoader('tremor-video/vast_inline_linear.xml', {
-        fetch: (...args) => mockFetch(EMPTY_VAST_2)
+        fetch: mockFetch(EMPTY_VAST_2)
       })
       const loader2 = createLoader('tremor-video/vast_inline_linear.xml', {
-        fetch: (...args) => mockFetch(EMPTY_VAST_3)
+        fetch: mockFetch(EMPTY_VAST_3)
       })
       loader1.on('didFetch', ({ body }) => {
         expect(body).to.equal(EMPTY_VAST_2)
