@@ -8,6 +8,15 @@ const { atob } = require('../../lib/node/atob')
 
 VASTLoader.atob = atob
 
+const EMPTY_VAST_2 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="2.0"/>`
+const EMPTY_VAST_3 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"/>`
+
+const mockFetch = body => () =>
+  Promise.resolve({
+    ok: true,
+    text: () => Promise.resolve(body)
+  })
+
 const expectLoaderError = (error, code, message, cause) => {
   expect(error).to.be.an.instanceof(VASTLoaderError)
   expect(error.code).to.equal(code)
@@ -337,6 +346,24 @@ describe('VASTLoader', function () {
       expect(localFetch.callCount).to.equal(2)
       expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'include' })
       expect(localFetch.secondCall.args[1]).to.eql({ credentials: 'omit' })
+    })
+  })
+
+  describe('fetch option', function () {
+    it('overwrites fetch per instance', async function () {
+      const loader1 = createLoader('tremor-video/vast_inline_linear.xml', {
+        fetch: mockFetch(EMPTY_VAST_2)
+      })
+      const loader2 = createLoader('tremor-video/vast_inline_linear.xml', {
+        fetch: mockFetch(EMPTY_VAST_3)
+      })
+      loader1.on('didFetch', ({ body }) => {
+        expect(body).to.equal(EMPTY_VAST_2)
+      })
+      loader2.on('didFetch', ({ body }) => {
+        expect(body).to.equal(EMPTY_VAST_3)
+      })
+      await Promise.all([loader1.load(), loader2.load()])
     })
   })
 })

@@ -16,10 +16,10 @@ const loader = new VASTLoader(tagUrl)
 
 // Load the tag chain and await the resulting Promise
 loader.load()
-  .then((chain) => {
+  .then(chain => {
     console.info('Loaded VAST tags:', chain)
   })
-  .catch((err) => {
+  .catch(err => {
     console.error('Error loading tag:', err)
   })
 ```
@@ -53,7 +53,7 @@ import { VASTLoader, VASTLoaderError } from 'iab-vast-loader'
 const loader = new VASTLoader(tagUrl)
 
 loader.load()
-  .catch((err) => {
+  .catch(err => {
     if (err instanceof VASTLoaderError) {
       console.error('VAST error: ' + err.code + ' ' + err.message)
     } else {
@@ -99,7 +99,7 @@ request URL and returning one of the accepted values. For example:
 
 ```js
 const loader = new VASTLoader(wrapperUrl, {
-  credentials (uri) {
+  credentials: uri => {
     if (uri.indexOf('.doubleclick.net/') >= 0) {
       return 'include'
     } else {
@@ -108,6 +108,14 @@ const loader = new VASTLoader(wrapperUrl, {
   }
 })
 ```
+
+### `fetch`
+
+Sets the implementation of
+[`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API), used to
+make HTTP requests. In Node.js, this defaults to
+[node-fetch](https://www.npmjs.com/package/node-fetch). In the browser,
+[unfetch](https://www.npmjs.com/package/unfetch) is used.
 
 ## Events
 
