@@ -46,7 +46,7 @@
     "coveralls": "^3.0.2",
     "dirty-chai": "^2.0.1",
     "express": "^4.16.2",
-    "fs-extra": "^7.0.0",
+    "fs-extra": "^8.0.0",
     "husky": "^1.0.0-rc.15",
     "lint-staged": "^7.3.0",
     "mocha": "^5.2.0",
