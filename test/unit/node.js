@@ -73,6 +73,7 @@ describe('VASTLoader', function () {
   let responseDelay
   let localFetch
   let failOnCredentials
+  let respCloneCalls
 
   const createLoader = (file, options) => {
     VASTLoader.fetch = localFetch
@@ -98,14 +99,24 @@ describe('VASTLoader', function () {
   beforeEach(function () {
     responseDelay = 0
     failOnCredentials = false
+    respCloneCalls = []
     localFetch = sinon.spy((uri, options) => {
+      const respIdx = respCloneCalls.length
+      respCloneCalls.push(0)
       if (options.credentials === 'include' && failOnCredentials) {
         return Promise.reject(new Error('Credentials not allowed'))
       }
-      if (uri in proxyPaths) {
+      if (proxyPaths.hasOwnProperty(uri)) {
         uri = baseUrl + proxyPaths[uri]
       }
-      return fetch(uri, options)
+      return fetch(uri, options).then(resp => {
+        const clone = resp.clone
+        resp.clone = function () {
+          respCloneCalls[respIdx]++
+          return clone.call(this)
+        }
+        return resp
+      })
     })
   })
 
@@ -346,6 +357,19 @@ describe('VASTLoader', function () {
       expect(localFetch.callCount).to.equal(2)
       expect(localFetch.firstCall.args[1]).to.eql({ credentials: 'include' })
       expect(localFetch.secondCall.args[1]).to.eql({ credentials: 'omit' })
+    })
+
+    it('clones consecutive responses', async function () {
+      failOnCredentials = true
+      const loader = createLoader(
+        'tremor-video/vast_inline_linear.xml',
+        {
+          credentials: ['include', 'omit']
+        },
+        true
+      )
+      await loader.load()
+      expect(respCloneCalls).to.eql([0, 1])
     })
   })
 
