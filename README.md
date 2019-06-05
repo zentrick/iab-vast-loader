@@ -138,10 +138,10 @@ loader
     console.info('Parsed', uri)
   })
   .load()
-  .then((chain) => {
+  .then(chain => {
     console.info('Loaded VAST tags:', chain)
   })
-  .catch((err) => {
+  .catch(err => {
     console.error('Error loading tag:', err)
   })
 ```
