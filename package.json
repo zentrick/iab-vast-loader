@@ -29,7 +29,7 @@
   "dependencies": {
     "es6-error": "^4.0.2",
     "esm": "^3.2.25",
-    "eventemitter3": "^3.1.2",
+    "eventemitter3": "^4.0.0",
     "iab-vast-error": "^0.2.0",
     "iab-vast-model": "^1.0.0",
     "iab-vast-parser": "^1.0.2",
