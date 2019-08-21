@@ -3,6 +3,7 @@
   "version": "2.2.0",
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
   "main": "node.js",
+  "browser": "browser.js",
   "jsnext:main": "browser.js",
   "author": "Zentrick nv (https://www.zentrick.com/)",
   "contributors": [
