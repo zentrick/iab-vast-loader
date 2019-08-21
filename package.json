@@ -4,7 +4,6 @@
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
   "main": "node.js",
   "browser": "browser.js",
-  "jsnext:main": "browser.js",
   "author": "Zentrick nv (https://www.zentrick.com/)",
   "contributors": [
     "Tim De Pauw <tim.depauw@zentrick.com>"
@@ -33,7 +32,7 @@
     "eventemitter3": "^3.1.2",
     "iab-vast-error": "^0.2.0",
     "iab-vast-model": "^1.0.0",
-    "iab-vast-parser": "^1.0.2",
+    "iab-vast-parser": "^1.0.3",
     "node-fetch": "^2.6.0",
     "unfetch": "^4.1.0"
   },
