@@ -8,8 +8,10 @@ const { atob } = require('../../lib/node/atob')
 
 VASTLoader.atob = atob
 
-const EMPTY_VAST_2 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="2.0"/>`
-const EMPTY_VAST_3 = `<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"/>`
+const EMPTY_VAST_2 =
+  '<?xml version="1.0" encoding="UTF-8"?><VAST version="2.0"/>'
+const EMPTY_VAST_3 =
+  '<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"/>'
 
 const mockFetch = body => () =>
   Promise.resolve({
