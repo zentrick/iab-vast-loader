@@ -31,8 +31,8 @@
     "esm": "^3.2.25",
     "eventemitter3": "^4.0.0",
     "iab-vast-error": "^0.2.0",
-    "iab-vast-model": "^1.0.0",
-    "iab-vast-parser": "^1.0.3",
+    "iab-vast-model": "^1.0.1",
+    "iab-vast-parser": "^1.0.4",
     "node-fetch": "^2.6.0",
     "unfetch": "^4.1.0"
   },

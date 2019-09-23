@@ -2442,12 +2442,12 @@ iab-vast-error@^0.2.0:
   dependencies:
     es6-error "^4.0.2"
 
-iab-vast-model@^1.0.0, iab-vast-model@^1.0.1:
+iab-vast-model@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/iab-vast-model/-/iab-vast-model-1.0.1.tgz#29bda5f10feaa497cf2e27a020d629a486c0b111"
   integrity sha512-PDDskwSTTSUnY/U2Tc0retUmrYUAxRVuwTxO663qpzfPBXOUY/ExXII/ILxzEOK6b+QIV9osyRkBvNh6y/UGUQ==
 
-iab-vast-parser@^1.0.3:
+iab-vast-parser@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/iab-vast-parser/-/iab-vast-parser-1.0.4.tgz#7f963db3c3668dcbd200685185396ec6a07d0c9f"
   integrity sha512-OGKaPyx4KvDO9HuZ3xU5mUtjH/Kc/5LOqjKF33wc3mxFWpgKeeTDBtH9VJS31gP9GXh5fcjg59eVAAbyU7jUsQ==
