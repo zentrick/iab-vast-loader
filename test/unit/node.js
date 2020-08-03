@@ -133,7 +133,19 @@ describe('VASTLoader', function () {
       )
     })
 
-    it('prepares all URIs before fetching', async function () {
+    it('prepares the first URI before fetching', async function () {
+      const origin = '[TEMPLATE].xml'
+      const loader = createLoader(origin, {
+        prepareUri: originalUri => originalUri.replace('[TEMPLATE]', 'inline')
+      })
+
+      await loader.load()
+
+      expect(localFetch.calledOnce).to.equal(true)
+      expect(localFetch.getCall(0).args[0]).to.equal(baseUrl + 'inline.xml')
+    })
+
+    it('prepares inner URIs before fetching', async function () {
       const origin = 'wrapper-template.xml'
       const inner = 'inline.xml'
       const loader = createLoader(origin, {
