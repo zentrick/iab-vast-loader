@@ -112,6 +112,21 @@ describe('VASTLoader', function () {
   })
 
   describe('#load()', function () {
+    it('replaces the uri before fetching', async function () {
+      const uri = 'unruly-video/vast_inline_linear.xml'
+      const replacer = uri => uri.replace('unruly', 'tremor')
+
+      const loader = createLoader(uri)
+      loader.fetchUriReplacer = replacer
+
+      await loader.load()
+
+      expect(localFetch.callCount).to.equal(1)
+      expect(localFetch.firstCall.args[0]).to.include(
+        'tremor-video/vast_inline_linear.xml'
+      )
+    })
+
     it('loads the InLine', async function () {
       const uri = 'tremor-video/vast_inline_linear.xml'
       const loader = createLoader(uri)
