@@ -111,27 +111,7 @@ describe('VASTLoader', function () {
     })
   })
 
-  it('has a default uri replacer', function () {
-    const loader = createLoader('rommel')
-    expect(loader.fetchUriReplacer).to.exist()
-  })
-
   describe('#load()', function () {
-    it('replaces the uri before fetching', async function () {
-      const uri = 'unruly-video/vast_inline_linear.xml'
-      const replacer = uri => uri.replace('unruly', 'tremor')
-
-      const loader = createLoader(uri)
-      loader.fetchUriReplacer = replacer
-
-      await loader.load()
-
-      expect(localFetch.callCount).to.equal(1)
-      expect(localFetch.firstCall.args[0]).to.include(
-        'tremor-video/vast_inline_linear.xml'
-      )
-    })
-
     it('loads the InLine', async function () {
       const uri = 'tremor-video/vast_inline_linear.xml'
       const loader = createLoader(uri)
@@ -151,6 +131,21 @@ describe('VASTLoader', function () {
       expect(chain[1].uri).to.equal(
         'http://demo.tremormedia.com/proddev/vast/vast_inline_linear.xml'
       )
+    })
+
+    it('prepares all URIs before fetching', async function () {
+      const origin = 'wrapper-template.xml'
+      const inner = 'inline.xml'
+      const loader = createLoader(origin, {
+        prepareUri: originalUri =>
+          originalUri.replace('[VASTAdTagURI]', baseUrl + inner)
+      })
+
+      await loader.load()
+
+      expect(localFetch.calledTwice).to.equal(true)
+      expect(localFetch.getCall(0).args[0]).to.equal(baseUrl + origin)
+      expect(localFetch.getCall(1).args[0]).to.equal(baseUrl + inner)
     })
 
     it('loads the InLine as Base64', async function () {
