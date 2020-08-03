@@ -111,6 +111,11 @@ describe('VASTLoader', function () {
     })
   })
 
+  it('has a default uri replacer', function () {
+    const loader = createLoader('rommel')
+    expect(loader.fetchUriReplacer).to.exist()
+  })
+
   describe('#load()', function () {
     it('replaces the uri before fetching', async function () {
       const uri = 'unruly-video/vast_inline_linear.xml'
