@@ -133,6 +133,33 @@ describe('VASTLoader', function () {
       )
     })
 
+    it('prepares the first URI before fetching', async function () {
+      const origin = '[TEMPLATE].xml'
+      const loader = createLoader(origin, {
+        prepareUri: originalUri => originalUri.replace('[TEMPLATE]', 'inline')
+      })
+
+      await loader.load()
+
+      expect(localFetch.calledOnce).to.equal(true)
+      expect(localFetch.getCall(0).args[0]).to.equal(baseUrl + 'inline.xml')
+    })
+
+    it('prepares inner URIs before fetching', async function () {
+      const origin = 'wrapper-template.xml'
+      const inner = 'inline.xml'
+      const loader = createLoader(origin, {
+        prepareUri: originalUri =>
+          originalUri.replace('[VASTAdTagURI]', baseUrl + inner)
+      })
+
+      await loader.load()
+
+      expect(localFetch.calledTwice).to.equal(true)
+      expect(localFetch.getCall(0).args[0]).to.equal(baseUrl + origin)
+      expect(localFetch.getCall(1).args[0]).to.equal(baseUrl + inner)
+    })
+
     it('loads the InLine as Base64', async function () {
       const file = path.join(
         fixturesPath,
