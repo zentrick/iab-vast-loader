@@ -208,15 +208,19 @@ describe('VASTLoader', function () {
       )
     })
 
-    it('throws VAST 100 on invalid VAST XML while using strict parsing', async function () {
+    it('throws VAST 101 when parsing VAST XML fails', async function () {
       let error
       try {
-        const loader = createLoader('invalid-vast.xml', { strictParsing: true })
+        const loader = createLoader('invalid-vast.xml')
         await loader.load()
       } catch (err) {
         error = err
       }
-      expectLoaderError(error, 100, 'VAST error 100: XML parsing error.')
+      expectLoaderError(
+        error,
+        101,
+        'VAST error 101: VAST schema validation error.'
+      )
     })
 
     it('throws VAST 301 on invalid InLine inside Wrapper', async function () {
