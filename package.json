@@ -1,6 +1,6 @@
 {
   "name": "iab-vast-loader",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Loads and parses IAB VAST tags, resolving wrapped tags along the way.",
   "main": "node.js",
   "browser": "browser.js",
