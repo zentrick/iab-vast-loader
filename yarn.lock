@@ -2723,18 +2723,18 @@ iab-vast-error@^0.2.0:
   dependencies:
     es6-error "^4.0.2"
 
-iab-vast-model@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/iab-vast-model/-/iab-vast-model-1.0.1.tgz#29bda5f10feaa497cf2e27a020d629a486c0b111"
-  integrity sha512-PDDskwSTTSUnY/U2Tc0retUmrYUAxRVuwTxO663qpzfPBXOUY/ExXII/ILxzEOK6b+QIV9osyRkBvNh6y/UGUQ==
+iab-vast-model@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/iab-vast-model/-/iab-vast-model-1.0.2.tgz#566cf42e6a43d9f1764cc21f34ea867a5b10ebcc"
+  integrity sha512-1xzIT0SM3fnRnGjmkQAoFCiF0IZCbsEOBpqUJmQD/KAK9Cwt1Vhg4v+C73J3te23OVp//Le9xFF5NKt9YA1Jyw==
 
-iab-vast-parser@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/iab-vast-parser/-/iab-vast-parser-1.2.0.tgz#16e5ae3e74e1d76805a8c59a1cfe7ce014cf5d6f"
-  integrity sha512-49snbkwZih721qgHX0ijtGWrm2UcvGK2rRSfpzUs+66k1LAmZatNqpUvDvUF3WSy4zLJgUR+qMX+gLWftO/39Q==
+iab-vast-parser@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/iab-vast-parser/-/iab-vast-parser-1.2.1.tgz#5caae4730af98ca38e7a3e15b72507ab57a79811"
+  integrity sha512-1wJIrDbioadTU7R02R9uiWP5g1p7A4ykHq9bNtdvb9Lkwq9XLqQp3Evy2pTD0Oww/SxCRiSIv55wzTjPfl+2og==
   dependencies:
     es6-error "4.1.1"
-    iab-vast-model "^1.0.1"
+    iab-vast-model "^1.0.2"
   optionalDependencies:
     xmldom "^0.1.22"
 
